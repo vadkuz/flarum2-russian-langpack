@@ -31,9 +31,6 @@
       "links": {
         "source": "https://github.com/vadkuz/flarum2-russian-langpack/tree/main"
       },
-      "info": {
-        "website": "https://example.invalid"
-      },
       "icon": {
         "image": "icon.svg",
         "backgroundColor": "#ffffff",
