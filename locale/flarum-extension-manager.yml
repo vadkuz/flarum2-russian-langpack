@@ -71,7 +71,7 @@ flarum-extension-manager:
       install_help: "Введите название пакета расширения. Вы можете указать <semantic_link>семантическую версию</semantic_link>,
         используя формат <code>vendor/package-name:version</code>. Посетите {extiverse} для обзора расширений.\n"
       proceed: Продолжить
-      remove: Удалить
+      remove: 'Удалить расширение'
       successful_install: '{extension} установлено, переадресация...'
       successful_remove: 'Расширение удалено.'
       successful_update: '{extension} обновлено, переадресация...'
