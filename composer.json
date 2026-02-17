@@ -13,12 +13,9 @@
     "localization",
     "translation"
   ],
-  "authors": [
-    {
-      "name": "Vadkuz",
-      "role": "Maintainer"
-    }
-  ],
+  "support": {
+    "source": "https://github.com/vadkuz/flarum2-russian-langpack/tree/main"
+  },
   "require": {
     "flarum/core": "^2.0.0-beta.6"
   },
