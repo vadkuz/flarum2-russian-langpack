@@ -6,7 +6,7 @@ Russian language pack for Flarum 2.x.
 
 `vadkuz/flarum2-russian-langpack`
 
-## Русский
+## 🇷🇺 Русский
 
 ### Установка (через Packagist)
 
@@ -27,7 +27,7 @@ php flarum cache:clear
 php flarum assets:publish
 ```
 
-## English
+## 🇬🇧 English
 
 ### Installation (via Packagist)
 
