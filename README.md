@@ -15,8 +15,6 @@ php flarum cache:clear
 php flarum assets:publish
 ```
 
-Для установки через Packagist GitHub-токен не требуется.
-
 В админке Flarum выберите русский язык по умолчанию: `Appearance -> Languages`.
 
 ## Удаление
