@@ -1,0 +1,49 @@
+{
+  "name": "vadkuz/flarum2-russian-langpack",
+  "description": "Russian language pack for Flarum 2.",
+  "type": "flarum-extension",
+  "license": "MIT",
+  "keywords": [
+    "extension",
+    "flarum",
+    "russian",
+    "language",
+    "locale",
+    "ru-locale",
+    "localization",
+    "translation"
+  ],
+  "authors": [
+    {
+      "name": "Vadkuz",
+      "role": "Maintainer"
+    }
+  ],
+  "require": {
+    "flarum/core": "^2.0.0-beta.6"
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "extra": {
+    "branch-alias": {
+      "dev-main": "2.x-dev"
+    },
+    "flarum-extension": {
+      "title": "Русский (Flarum2)",
+      "category": "language",
+      "info": {
+        "website": "https://example.invalid"
+      },
+      "icon": {
+        "image": "icon.svg",
+        "backgroundColor": "#ffffff",
+        "backgroundSize": "cover",
+        "backgroundPosition": "center"
+      }
+    },
+    "flarum-locale": {
+      "code": "ru",
+      "title": "Русский"
+    }
+  }
+}

@@ -1,0 +1,25 @@
+flarum-sticky:
+  admin:
+    settings:
+      enable_display_excerpt: Показывать фрагмент первого сообщения, когда закреплённая тема не прочитана
+      only_sticky_unread_discussions_label: Только непрочитанные закреплённые темы
+      only_sticky_unread_discussions_help: На странице «Все темы» непрочитанные закреплённые темы закрепляются
+        сверху, а прочитанные закреплённые следуют обычному порядку.
+    permissions:
+      sticky_discussions_label: 'Закреплять темы'
+  forum:
+    badge:
+      sticky_tooltip: '=> flarum-sticky.ref.sticky'
+    discussion_controls:
+      sticky_button: Закрепить
+      unsticky_button: Открепить
+    post_stream:
+      discussion_stickied_text: '{username} закрепил(а) тему {time}.'
+      discussion_unstickied_text: '{username} открепил(а) тему {time}.'
+  lib:
+    gambits:
+      discussions:
+        sticky:
+          key: закреплено
+  ref:
+    sticky: Закреплено

@@ -1,0 +1,33 @@
+flarum-realtime:
+  forum:
+    push:
+      discussion-list-new-activity: "{count, plural, one {Показать # обновлённую тему} other {Показать # обновлённые
+        темы}}"
+      discussion-list-new-activity-with-auto-release: "{count, plural, one {# тема получила} other {# темы получили}}
+        обновления и будут показаны через {releaseTimeout} сек. Нажмите, чтобы показать сейчас."
+    typing-indicator:
+      anonymous-user: "[Аноним]"
+      people-are-typing: "{number, plural, one {# человек печатает} other {# человек печатают}}"
+      users-are-typing: "{count, plural, one {{users} печатает} other {{users}{others, plural, =1 { и ещё # пользователь}
+        =0 {} other { и ещё # пользователей}} печатают}}"
+      no-activity: Никто не печатает
+    user:
+      settings:
+        heading: Режим реального времени
+        typing-indicator-type:
+          help: Если включено, индикатор печати показывает, кто именно сейчас печатает. Если отключено, будет показано 
+            только количество печатающих пользователей.
+          label: Показывать, кто печатает
+  admin:
+    permission:
+      view-who-types: Смотреть, кто печатает
+    settings:
+      release-discussion-updates: Обновления списка тем
+      release-discussion-updates-help: Если включено, новые темы будут автоматически появляться в 
+        <code>DiscussionList</code> с интервалом, указанным ниже.
+      release-discussion-updates-interval: Интервал автопоказа новой активности в темах
+      release-discussion-updates-interval-help: В секундах. 0 означает отключение автопоказа.
+      typing-indicator: Индикатор печати
+      typing-indicator-help: Если включено и есть соответствующее разрешение, пользователи смогут видеть количество 
+        других пользователей, которые сейчас печатают в теме. Если отключено, активность печати убирается и из 
+        интерфейса, и из websocket-пакета данных.

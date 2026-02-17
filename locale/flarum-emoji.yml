@@ -1,0 +1,9 @@
+flarum-emoji:
+  admin:
+    settings:
+      cdn_label: Адрес зеркала CDN
+      cdn_help: "e.g. https://cdn.jsdelivr.net/gh/twitter/twemoji@[version]/assets/, The current version is: {version}"
+  forum:
+    composer:
+      emoji_tooltip: 'Вставить EMOJI'
+      type_to_search_text: 'Введите текст для поиска EMOJI'
