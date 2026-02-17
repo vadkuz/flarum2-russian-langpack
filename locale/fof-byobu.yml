@@ -30,6 +30,7 @@ fof-byobu:
       post-event-icon: 'Иконка события'
   email:
     body:
+      made_public: "{actor_display_name} удалил(а) всех получателей и сделал(а) тему публичной: {discussion_title}.\n\nПосмотреть:\n{discussion_url}\n\nВозможно, Вам потребуется войти под своей учётной записью, чтобы открыть эту ссылку.\n"
       private_discussion_added: "Здравствуйте, {recipient_display_name}!\n\n{actor_display_name} добавил(а) Вас в существующую переписку. Название переписки: '{discussion_title}'.\n\nПосмотреть:\n{discussion_url}\n\nВы должны будете войти под своей учётной записью для того, чтобы получить доступ к переписке.\n"
       private_discussion_created: "Здравствуйте, {recipient_display_name}!\n\n{actor_display_name} начал(а) новую переписку с Вами. Название переписки: '{discussion_title}'.\n\nПосмотреть:\n{discussion_url}\n\nВы должны будете войти под своей учётной записью для того, чтобы получить доступ к переписке.\n"
       private_discussion_replied: "Здравствуйте, {recipient_display_name}!\n\n{actor_display_name} ответил(а) в переписке, участником которой Вы являетесь. Название переписки: '{discussion_title}'.\n\nПосмотреть:\n{post_url}\n\nВы должны будете войти под своей учётной записью для того, чтобы получить доступ к переписке.\n"
@@ -101,3 +102,11 @@ fof-byobu:
       dropdown_label: Переписки
       settings:
         block_pd: 'Отключить переписки'
+  lib:
+    gambits:
+      allows-pd:
+        key: разрешает-пд
+      byobu:
+        key: byobu
+      private:
+        key: приватный

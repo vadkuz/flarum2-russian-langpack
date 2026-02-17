@@ -14,3 +14,12 @@ core:
     post_controls:
       pull_from_front_button: 'Убрать с Главной страницы'
       push_to_front_button: 'Поместить на Главную страницу'
+
+fof-frontpage:
+  admin:
+    permissions:
+      can_push_to_frontpage_label: 'Можно поместить на Главную страницу'
+  lib:
+    gambits:
+      frontpage:
+        key: главная

@@ -25,6 +25,7 @@ fof-merge-discussions:
       merge: '=> fof-merge-discussions.ref.merge'
     modal:
       load_preview_button: Пред-просмотр
+      search_discussions_placeholder: 'Поиск тем...'
       ordering_date_help: 'Сообщения в итоговой темы будут упорядочены по дате своего создания.'
       ordering_date_label: 'Объединить сообщения по дате создания'
       ordering_heading: 'Порядок объединения'

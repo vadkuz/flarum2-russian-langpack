@@ -18,6 +18,8 @@ fof-reactions:
       reactions:
         Helptext: 'Введите имя (идентификатор) значка EMOJI или иконки Font Awesome и выберете необходимый тип.'
         delete_confirmation: 'Вы уверены, что хотите удалить эту реакцию? Это действие нельзя отменить.'
+        delete_reaction_button: 'Удалить реакцию'
+        add_reaction_button: 'Добавить реакцию'
         help:
           display: Отображение
           identifier: Идентификатор
@@ -52,9 +54,13 @@ fof-reactions:
     modal:
       anonymous_count: '{count, plural, one {# анонимный пользователь} other {# анонимных пользователей}}'
       no_reactions: 'Пока нет реакций'
+      remove_all_reaction_type: 'Удалить все реакции {reaction}'
+      remove_user_reaction: 'Удалить реакцию'
       title: Реакции
     notification: '{username} поставил(а) {reaction} Вашему сообщению'
     react_button_label: Реакция
+    reaction_button_label: 'Поставить {reaction}'
+    reacted_with_label: '{count, plural, one {{reaction} (# реакция)} other {{reaction} (# реакций)}}'
     reacting-own-post: 'Вы не можете реагировать на собственное сообщение'
     settings:
       notify_post_reacted_label: 'Реакция на одно из моих сообщений'

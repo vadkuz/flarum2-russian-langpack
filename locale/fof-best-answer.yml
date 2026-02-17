@@ -10,6 +10,7 @@ fof-best-answer:
     permissions:
       best_answer: 'Выбирать лучший ответ (автор темы)'
       best_answer_not_own_discussion: 'Выбирать лучший ответ (участники темы)'
+      allow_select_own_post: 'Выбирать своё сообщение как лучший ответ'
     settings:
       allow_select_own_post: 'Выбирать своё сообщение'
       allow_select_own_post_help: 'Разрешить пользователю выбирать своё сообщение в качестве лучшего ответа в теме.'
@@ -96,6 +97,10 @@ fof-best-answer:
     this_best_answer: 'Это лучший ответ'
     user:
       best-answer-count: '{count, plural, one {{count} лучший ответ} other {{count} лучших ответов}}'
+  lib:
+    gambits:
+      solved-discussions:
+        key: решено
 fof-user-directory:
   lib:
     sort:

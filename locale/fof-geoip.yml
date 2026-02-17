@@ -35,10 +35,38 @@ fof-geoip:
       service_ipsevenex_label: '7x API геолокации'
       service_ipstack_description: 'Используйте <b>https://ipstack.com</b> 10,000 запросов в месяц бесплатно. Платные тарифы включают более подробную информацию (ISP, организация) и уровень угрозы.'
       service_ipstack_label: IPStack
+      service_ipinfo-lite_label: 'IPInfo Lite'
+      service_ipinfo-lite_description: 'Используйте <b>https://ipinfo.io</b>, чтобы получать информацию об IP без ограничений по скорости и лимитам. Требуется регистрация для получения бесплатного API-ключа.'
       service_label: Сервис
       show_flag_help: 'Не раскрывая IP-адрес, укажите флаг страны на IP-адресе автора публикации, когда пользователь выберет его в своих настройках.'
       show_flag_label: 'Показывать флаг страны для каждого сообщения'
       title: GeoIP
+      test:
+        heading: 'Тест конфигурации сервиса'
+        help: 'Проверьте конфигурацию сервиса определения IP по примерному IP-адресу. Перед тестом обязательно сохраните настройки.'
+      test_service_label: 'Тест IP-адреса'
+      test_service_help: 'Введите IPv4 или IPv6 адрес, чтобы проверить текущую конфигурацию выбранного сервиса.'
+      test_button: 'Запустить тест'
+      testing: 'Тестирование...'
+      test_result_title: 'Результат теста'
+      test_ip_required: 'Пожалуйста, введите IP-адрес для теста.'
+      test_error: 'При тестировании сервиса произошла ошибка.'
+      test_service_label_result: 'Сервис:'
+      test_status_label: 'Статус:'
+      test_response_time_label: 'Время ответа:'
+      test_timestamp_label: 'Время:'
+      test_http_status_code_label: 'Код статуса HTTP:'
+      test_error_details_label: 'Детали ошибки:'
+      test_processed_service_response_label: 'Обработанный ответ сервиса:'
+      status_success: '✓ Успех'
+      status_error: '✗ Ошибка'
+      status_unknown: 'Неизвестно'
+      response_headers_label: 'Заголовки ответа'
+      raw_http_response_label: 'Сырое тело HTTP-ответа'
+      request_url_label: 'URL запроса'
+      request_options_label: 'Параметры запроса'
+      error_prefix: 'Ошибка:'
+      error_code_prefix: 'Код:'
   forum:
     alerts:
       ip_copied: 'IP скопирован'

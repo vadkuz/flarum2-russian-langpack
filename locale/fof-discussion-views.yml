@@ -5,6 +5,8 @@
 core:
   forum:
     index_sort:
+      least_viewed_button: 'Меньше всего просмотров'
+      most_viewed_button: 'Больше всего просмотров'
       popular_button: Популярное
       unpopular_button: Непопулярное
 fof-discussion-views:
@@ -17,6 +19,11 @@ fof-discussion-views:
     discussion_controls:
       resetviews_button: 'Установить счетчик просмотров'
     modal_resetviews:
+      invalid: 'Пожалуйста, введите корректное число, большее или равное 0'
       label: 'Установить на счетчик просмотров'
       submit: Отправить
       title: 'Сбросить счетчик просмотров темы'
+  lib:
+    gambits:
+      popular:
+        key: популярное

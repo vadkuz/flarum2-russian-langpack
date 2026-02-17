@@ -53,3 +53,16 @@ fof-drafts:
         drafts_heading: Черновики
   ref:
     schedule_draft: 'Запланировать публикацию'
+
+fof-default-user-preferences:
+  admin:
+    settings:
+      draftAutosaveEnable: 'Включить автосохранение черновиков по умолчанию'
+      draftAutosaveInterval: 'Интервал автосохранения по умолчанию (секунды)'
+
+flarum-gdpr:
+  lib:
+    data:
+      drafts:
+        export_description: 'Все черновики, созданные пользователем.'
+        delete_description: 'Удалить все черновики, созданные пользователем.'
