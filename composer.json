@@ -28,6 +28,9 @@
     "flarum-extension": {
       "title": "Русский (Flarum2)",
       "category": "language",
+      "links": {
+        "source": "https://github.com/vadkuz/flarum2-russian-langpack/tree/main"
+      },
       "info": {
         "website": "https://example.invalid"
       },
