@@ -775,9 +775,9 @@ core:
     username:
       deleted_text: '[удалено]'
     datetime_formats:
-      fullTime: ЛЛЛЛ
-      humanTimeShort: 'Д МММ'
-      humanTimeLong: я буду
+      fullTime: LLLL
+      humanTimeShort: 'D MMM'
+      humanTimeLong: ll
       scrubber: DD/MM/YYYY
       userListJoinDate: LLL
   views:
