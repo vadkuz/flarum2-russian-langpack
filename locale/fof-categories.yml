@@ -1,0 +1,44 @@
+# Russian translations for Friends of Flarum Categories.
+
+fof-categories:
+  admin:
+    basics:
+      categories_label: Категории
+    headings:
+      child_display: Отображение дочерних категорий
+      layout: Макет
+      nav: Навигация
+      parent_display: Отображение родительских категорий
+      performance: Производительность
+    help:
+      child_bare_icon: Показывать иконки дочерних категорий без круглого фона?
+      full_page_desktop: Следует ли сворачивать боковое меню навигации в строку (как на классической странице тегов)? Это также скроет виджеты (например, FoF Forum Statistics) в панели страницы категорий.
+      small_forum_optimized: Это даст более точные подсчеты тем и сообщений, но может заметно замедлить средние и большие форумы.
+    labels:
+      child_bare_icon: Иконки дочерних категорий без фона?
+      compact_mobile_mode: Компактный мобильный режим
+      full_page_desktop: Полноэкранный режим на ПК?
+      keep_tags_nav: Оставить ссылку на страницу тегов в боковой навигации?
+      parent_remove_description: Скрывать описания у категорий верхнего уровня?
+      parent_remove_icon: Скрывать иконки у категорий верхнего уровня?
+      parent_remove_last_discussion: Скрывать последние обсуждения у категорий верхнего уровня?
+      parent_remove_stats: Скрывать статистику у категорий верхнего уровня?
+      small_forum_optimized: Оптимизировать для небольших форумов?
+    title: Настройки категорий
+
+  forum:
+    all_categories:
+      meta_description_text: Все категории
+      meta_title_text: => fof-categories.ref.categories
+    header:
+      back_to_categories_tooltip: Вернуться к категориям
+    index:
+      categories_link: => fof-categories.ref.categories
+    stat-widgets:
+      discussion_label: Темы
+      post_label: Сообщения
+    last_discussion_widget:
+      no_discussions: Пока нет обсуждений
+
+  ref:
+    categories: Категории
