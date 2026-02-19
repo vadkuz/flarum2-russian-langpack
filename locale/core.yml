@@ -24,7 +24,7 @@ core:
             шаг, причиной проблемы является следующее расширение:
           start_button: Начать деление пополам
           stop_button: Остановить пополам
-          steps_left: "Осталось шагов: {шаги}"
+          steps_left: "Осталось шагов: {steps}"
           total_steps: Это займет около {steps} шагов.
           title: Расширение пополам
           yes_button: Да
@@ -41,7 +41,7 @@ core:
           safe: Безопасный режим. Никакие расширения не загружаются, и доступ к форуму имеют только администраторы.
         safe_mode_extensions: Расширения, которым разрешено загружаться в безопасном режиме
         safe_mode_extensions_override_help: "Этот параметр переопределяется ключом <code>safe_mode_extensions</code> в вашем
-          файле <code>config.php</code>. (<b>{расширения</b>)"
+          файле <code>config.php</code>. (<b>{extensions}</b>)"
         section_label: Обслуживание
       fontawesome:
         section_label: ШрифтПотрясающие Иконки
@@ -83,7 +83,7 @@ core:
         backoff_help: Пришло время подождать, прежде чем повторять неудачное задание. По умолчанию — 0 секунд.
       search:
         section_label: Поиск драйверов
-        driver_heading: "Поиск драйвера: {модель}"
+        driver_heading: "Поиск драйвера: {model}"
         driver_text: Выберите драйвер, который будет использоваться для поиска этой модели.
         driver_options:
           default: Поиск в базе данных по умолчанию
@@ -393,7 +393,7 @@ core:
             title: Действия
             edit_user:
               button: => core.ref.edit
-              tooltip: Изменить {имя пользователя}
+              tooltip: Изменить {username}
           user_id:
             title: ИДЕНТИФИКАТОР
           username:
@@ -530,7 +530,7 @@ core:
       toggle_dropdown_accessible_label: 'Выпадающее меню управления сообщением'
     post_list:
       empty_text: Похоже, здесь нет сообщений.
-      in_discussion_text: "В {обсуждении}"
+      in_discussion_text: "В {discussion}"
       load_more_button: => core.ref.load_more
     post_scrubber:
       now_link: Сейчас
@@ -584,7 +584,7 @@ core:
       terminate_session: Завершено
       title: '=> core.ref.security'
       token_revoked: 'Токен отозван.'
-      token_item_title: '{title} – {токен}'
+      token_item_title: '{title} – {token}'
       token_title_placeholder: /
     settings:
       account_heading: Аккаунт
@@ -650,7 +650,7 @@ core:
     dropdown:
       toggle_dropdown_accessible_label: 'Выпадающее меню'
     data_segment:
-      label: '{этикетка}:'
+      label: '{label}:'
     edit_user:
       activate_button: 'Активировать пользователя'
       email_heading: '=> core.ref.email'
@@ -742,7 +742,7 @@ core:
       go_to_page_textbox_a11y_label: Перейти непосредственно к номеру страницы
       last_button: Перейти на последнюю страницу
       next_button: Следующая страница
-      page_counter: Страница {текущая} из {total}
+      page_counter: Страница {current} из {total}
     search:
       gambit_plus_button_a11y_label: Добавьте положительный фильтр
       gambit_minus_button_a11y_label: Добавить отрицательный фильтр
