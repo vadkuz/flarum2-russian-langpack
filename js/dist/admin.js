@@ -65,6 +65,7 @@
 
     var host = getPanelHost();
     if (!host) return null;
+    hideDefaultNoSettingsMessage(host);
 
     panel = document.createElement('div');
     panel.id = PANEL_ID;
@@ -76,6 +77,26 @@
 
     host.appendChild(panel);
     return panel;
+  }
+
+  function hideDefaultNoSettingsMessage(host) {
+    if (!host) return;
+
+    var headings = host.querySelectorAll('h3');
+    if (!headings || !headings.length) return;
+
+    for (var i = 0; i < headings.length; i++) {
+      var heading = headings[i];
+      var text = String(heading.textContent || '').trim().toLowerCase();
+
+      if (
+        text === 'расширение не имеет настроек.' ||
+        text === 'this extension has no settings.' ||
+        text === 'this extension has no settings'
+      ) {
+        heading.style.display = 'none';
+      }
+    }
   }
 
   function ensurePanelStyles() {
