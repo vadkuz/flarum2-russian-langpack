@@ -9,6 +9,7 @@ class TranslationSyncManager
 {
     private const STATE_KEY = 'vadkuz.russian_langpack.sync_state';
     private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
+    private const REPORTING_SHARED_KEY_KEY = 'vadkuz.russian_langpack.reporting_shared_key';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
     private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
     private const MAX_REMOTE_BYTES = 524288;
@@ -450,6 +451,11 @@ class TranslationSyncManager
         $state['lastReportHttpCode'] = $result['status'];
 
         if ($result['status'] >= 200 && $result['status'] < 300) {
+            $ingestKey = is_string($result['ingestKey'] ?? null) ? trim((string) $result['ingestKey']) : '';
+            if ($ingestKey !== '' && preg_match('/^[a-f0-9]{64}$/i', $ingestKey) === 1) {
+                $this->settings->set(self::REPORTING_SHARED_KEY_KEY, strtolower($ingestKey));
+            }
+
             $state['lastReportStatus'] = 'sent';
             $state['lastReportMessage'] = 'Report sent.';
         } else {
@@ -571,27 +577,29 @@ class TranslationSyncManager
 
     /**
      * @param array<string, mixed> $payload
-     * @return array{status: int, message: string}
+     * @return array{status: int, message: string, ingestKey: string|null}
      */
     private function httpPostJson(string $url, array $payload): array
     {
         if (! function_exists('curl_init')) {
-            return ['status' => 500, 'message' => 'cURL extension is not available.'];
+            return ['status' => 500, 'message' => 'cURL extension is not available.', 'ingestKey' => null];
         }
 
         $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         if (! is_string($body) || $body === '') {
-            return ['status' => 500, 'message' => 'Could not encode report payload.'];
+            return ['status' => 500, 'message' => 'Could not encode report payload.', 'ingestKey' => null];
         }
 
         $ch = curl_init($url);
         if ($ch === false) {
-            return ['status' => 500, 'message' => 'Could not initialize cURL.'];
+            return ['status' => 500, 'message' => 'Could not initialize cURL.', 'ingestKey' => null];
         }
 
         $timestamp = (string) time();
         $nonce = $this->buildRequestNonce();
-        $secret = $this->getWebhookSigningSecret();
+        $storedSharedKey = $this->getStoredReportingSharedKey();
+        $signatureMode = $storedSharedKey !== '' ? 'shared' : 'bootstrap';
+        $secret = $storedSharedKey !== '' ? $storedSharedKey : $this->getBootstrapSigningSecret();
         $signature = hash_hmac('sha256', $timestamp.'.'.$nonce.'.'.$body, $secret);
 
         $headers = [
@@ -602,6 +610,7 @@ class TranslationSyncManager
             'X-Langpack-Nonce: '.$nonce,
             'X-Langpack-Signature: '.$signature,
             'X-Langpack-Signature-Alg: hmac-sha256',
+            'X-Langpack-Signature-Mode: '.$signatureMode,
         ];
 
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
@@ -624,11 +633,20 @@ class TranslationSyncManager
             return [
                 'status' => 500,
                 'message' => 'Webhook request failed: '.($error !== '' ? $error : (string) $errno),
+                'ingestKey' => null,
             ];
         }
 
+        $responseBody = is_string($response) ? trim($response) : '';
+        $responseJson = null;
+        if ($responseBody !== '' && str_starts_with($responseBody, '{')) {
+            $decoded = json_decode($responseBody, true);
+            if (is_array($decoded)) {
+                $responseJson = $decoded;
+            }
+        }
+
         if ($status < 200 || $status >= 300) {
-            $responseBody = is_string($response) ? trim($response) : '';
             if ($responseBody !== '' && strlen($responseBody) > 120) {
                 $responseBody = substr($responseBody, 0, 120).'...';
             }
@@ -636,13 +654,22 @@ class TranslationSyncManager
             return [
                 'status' => $status > 0 ? $status : 500,
                 'message' => 'Webhook responded with status '.($status > 0 ? $status : 500).($responseBody !== '' ? ': '.$responseBody : '.'),
+                'ingestKey' => null,
             ];
         }
 
-        return ['status' => $status, 'message' => 'OK'];
+        $ingestKey = null;
+        if (is_array($responseJson) && is_string($responseJson['ingestKey'] ?? null)) {
+            $candidate = strtolower(trim((string) $responseJson['ingestKey']));
+            if (preg_match('/^[a-f0-9]{64}$/', $candidate) === 1) {
+                $ingestKey = $candidate;
+            }
+        }
+
+        return ['status' => $status, 'message' => 'OK', 'ingestKey' => $ingestKey];
     }
 
-    private function getWebhookSigningSecret(): string
+    private function getBootstrapSigningSecret(): string
     {
         $appKey = (string) ($this->config->get('app.key') ?? '');
         $trimmed = trim($appKey);
@@ -661,6 +688,18 @@ class TranslationSyncManager
         $forumUrl = (string) ($this->config->get('url') ?? '');
 
         return hash('sha256', 'vadkuz-langpack|'.$forumUrl.'|fallback-secret');
+    }
+
+    private function getStoredReportingSharedKey(): string
+    {
+        $raw = (string) ($this->settings->get(self::REPORTING_SHARED_KEY_KEY) ?? '');
+        $key = strtolower(trim($raw));
+
+        if (preg_match('/^[a-f0-9]{64}$/', $key) !== 1) {
+            return '';
+        }
+
+        return $key;
     }
 
     private function buildRequestNonce(): string
