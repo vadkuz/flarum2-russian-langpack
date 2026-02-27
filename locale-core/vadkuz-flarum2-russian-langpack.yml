@@ -16,3 +16,15 @@ vadkuz-flarum2-russian-langpack:
       last_action: Последнее действие
       last_message: Сообщение
       updated_at: Обновлено
+      msg:
+        no_pending: Нет ожидающих переводов.
+        local_catalog: Перевод взят из локального каталога.
+        github_downloaded: Перевод загружен с GitHub.
+        github_not_found: Перевод не найден на GitHub.
+        queue_refreshed: Очередь обновлена по списку включённых расширений.
+        invalid_extension: Некорректный идентификатор расширения.
+        invalid_file: Загруженный файл пустой или некорректный.
+        write_failed: Не удалось записать runtime-файл перевода.
+        sync_running: Синхронизация уже выполняется.
+        lock_open_failed: Не удалось открыть lock-файл синхронизации.
+        github_status: "Запрос к GitHub завершился с кодом {status}."

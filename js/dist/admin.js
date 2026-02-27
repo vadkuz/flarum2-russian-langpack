@@ -106,6 +106,70 @@
     panel.appendChild(body);
   }
 
+  function localizeSyncMessage(message) {
+    var text = String(message || '').trim();
+    if (!text) return '';
+
+    var map = {
+      'No pending translations.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.no_pending',
+        'No pending translations.',
+      ],
+      'Translation copied from local catalog.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog',
+        'Translation copied from local catalog.',
+      ],
+      'Translation downloaded from GitHub.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_downloaded',
+        'Translation downloaded from GitHub.',
+      ],
+      'Translation not found on GitHub.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_not_found',
+        'Translation not found on GitHub.',
+      ],
+      'Queue refreshed from enabled extensions.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.queue_refreshed',
+        'Queue refreshed from enabled extensions.',
+      ],
+      'Invalid extension id.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_extension',
+        'Invalid extension id.',
+      ],
+      'Downloaded file is empty or invalid.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_file',
+        'Downloaded file is empty or invalid.',
+      ],
+      'Could not write runtime locale file.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.write_failed',
+        'Could not write runtime locale file.',
+      ],
+      'Sync is already running.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.sync_running',
+        'Sync is already running.',
+      ],
+      'Could not open sync lock file.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.lock_open_failed',
+        'Could not open sync lock file.',
+      ],
+    };
+
+    if (Object.prototype.hasOwnProperty.call(map, text)) {
+      var item = map[text];
+      return trans(item[0], item[1]);
+    }
+
+    var githubStatus = text.match(/^GitHub request failed with status (\d+)\.$/i);
+    if (githubStatus) {
+      return trans(
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_status',
+        'GitHub request failed with status {status}.',
+        { status: githubStatus[1] }
+      );
+    }
+
+    return text;
+  }
+
   function asCount(value) {
     var n = Number(value);
     if (!isFinite(n) || n < 0) return 0;
@@ -267,7 +331,7 @@
       message.textContent =
         trans('vadkuz-flarum2-russian-langpack.admin.sync.last_message', 'Message') +
         ': ' +
-        data.lastMessage;
+        localizeSyncMessage(data.lastMessage);
       panel.appendChild(message);
     }
 
