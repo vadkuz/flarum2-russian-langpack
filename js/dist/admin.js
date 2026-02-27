@@ -160,12 +160,24 @@
   }
 
   async function apiRequest(path, method) {
+    var url = getApiBaseUrl() + path;
+
+    if (app && typeof app.request === 'function') {
+      return app.request({
+        method: method || 'GET',
+        url: url,
+      });
+    }
+
     var headers = {};
     if (app && app.session && app.session.csrfToken) {
       headers['X-CSRF-Token'] = app.session.csrfToken;
+      if (app.session.user && typeof app.session.user.id === 'function') {
+        headers.Authorization = 'Token ' + app.session.csrfToken + '; userId=' + app.session.user.id();
+      }
     }
 
-    var response = await fetch(getApiBaseUrl() + path, {
+    var response = await fetch(url, {
       method: method || 'GET',
       credentials: 'same-origin',
       headers: headers,
