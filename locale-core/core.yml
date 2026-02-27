@@ -1,0 +1,967 @@
+core:
+  admin:
+    advanced:
+      description: "Настройте дополнительные параметры вашего форума."
+      maintenance:
+        bisect:
+          begin_button_text: Начать разделение пополам
+          continue_button_text: Продолжить пополам
+          label: Расширение пополам
+          help: Помогает определить расширение, вызывающее наблюдаемую вами проблему. Это автоматически переводит форум 
+            в режим обслуживания (низкий), пока процесс не завершится.
+        bisect_modal:
+          description: >-
+            Это переводит форум в режим обслуживания (низкий), пока процесс не завершится. На каждом этапе некоторые расширения
+            будут отключены, пока мы не найдем то, которое вызывает проблему. Поэтому не удивляйтесь, увидев отсутствующие
+            функции или другой дизайн темы. Держите эту страницу открытой и пытайтесь воспроизводить проблему после каждого
+            шага на отдельной странице. Вы всегда можете вернуться на эту страницу, если по ошибке закроете ее.
+          end_button: Закройте и перейдите на страницу расширения.
+          issue_question: Проблема все еще возникает?
+          issue_question_help: Попробуйте воспроизвести проблему на отдельной странице и ответьте на основе результата.
+          no_button: Нет
+          result_description: >-
+            Форум больше не находится в режиме обслуживания. Расширение биссектрисы закончено. Судя по вашим ответам на каждый
+            шаг, причиной проблемы является следующее расширение:
+          start_button: Начать деление пополам
+          stop_button: Остановить пополам
+          steps_left: "Осталось шагов: {steps}"
+          total_steps: Это займет около {steps} шагов.
+          title: Расширение пополам
+          yes_button: Да
+        config_override:
+          label: Ваш файл <code>config.php</code> переопределяет эти настройки.
+          help: Вы по-прежнему можете изменить эти настройки здесь, но они не вступят в силу, пока вы не установите для 
+            <code>offline</code> значение <code>0</code> в файле <code>config.php</code>.
+        help: Переведите свой форум в режим обслуживания, чтобы пользователи не могли получить к нему доступ.
+        options:
+          none: Никакого обслуживания.
+          high: Режим высокого обслуживания. Никто не может получить доступ к форуму (можно включить только через 
+            config.php)
+          low: Режим минимального обслуживания. Администраторы имеют доступ к форуму.
+          safe: Безопасный режим. Никакие расширения не загружаются, и доступ к форуму имеют только администраторы.
+        safe_mode_extensions: Расширения, которым разрешено загружаться в безопасном режиме
+        safe_mode_extensions_override_help: "Этот параметр переопределяется ключом <code>safe_mode_extensions</code> в вашем
+          файле <code>config.php</code>. (<b>{extensions}</b>)"
+        section_label: Обслуживание
+      fontawesome:
+        section_label: ШрифтПотрясающие Иконки
+        source_label: Источник значка
+        source_help: Выберите способ загрузки значков FontAwesome. Local использует встроенные шрифты, CDN загружается 
+          из CDN, а Kit использует наборы FontAwesome с настраиваемыми значками.
+        source_local: Местный (в комплекте)
+        source_cdn: CDN
+        source_kit: ШрифтAwesome Kit
+        cdn_url_label: URL-адрес CDN
+        cdn_url_help: Полный URL-адрес CSS-файла FontAwesome в CDN
+        kit_url_label: URL-адрес комплекта
+        kit_url_help: URL-адрес вашего скрипта FontAwesome Kit (с сайта kit.fontawesome.com)
+        config_override:
+          label: Переопределение конфигурации
+          help: Настройки FontAwesome в настоящее время установлены в вашем файле config.php и не могут быть изменены 
+            здесь.
+      pgsql:
+        search_configuration: Найдите конфигурацию для использования
+      queue:
+        section_label: Очередь
+        sync_info: Ваш форум использует драйвер синхронной очереди. Задания обрабатываются немедленно в основном потоке 
+          процесса.
+        sync_help: Для повышения производительности и удобства пользователя рассмотрите возможность использования 
+          драйвера очереди базы данных. Узнайте больше в документации.
+        custom_driver: "Ваш форум использует драйвер очереди {driver}, который предоставляется расширением."
+        retries_label: Повторные попытки задания
+        retries_help: Максимальное количество попыток выполнения задания, прежде чем оно будет помечено как неудачное. 
+          По умолчанию — 1.
+        memory_label: Ограничение памяти (МБ)
+        memory_help: Максимальный объем памяти, который работник очереди может использовать перед перезапуском. По 
+          умолчанию — 128 МБ.
+        timeout_label: Тайм-аут задания (секунды)
+        timeout_help: Максимальное время, в течение которого может выполняться одно задание до истечения времени 
+          ожидания. По умолчанию — 60 секунд.
+        rest_label: Время отдыха (секунды)
+        rest_help: Время ожидания между обработками заданий. По умолчанию — 0 секунд.
+        backoff_label: Отсрочка (секунды)
+        backoff_help: Пришло время подождать, прежде чем повторять неудачное задание. По умолчанию — 0 секунд.
+      search:
+        section_label: Поиск драйверов
+        driver_heading: "Поиск драйвера: {model}"
+        driver_text: Выберите драйвер, который будет использоваться для поиска этой модели.
+        driver_options:
+          default: Поиск в базе данных по умолчанию
+        no_other_drivers: Поисковых драйверов пока нет. Установите расширение драйвера поиска, чтобы иметь возможность 
+          его настроить.
+      title: Расширенные настройки
+    appearance:
+      allow_user_color_scheme_label: Разрешить пользователям выбирать собственную цветовую схему
+      colored_header_label: 'Цветная шапка'
+      colors_heading: Цвета
+      colors_primary_label: 'Основной цвет'
+      colors_secondary_label: 'Дополнительный цвет'
+      colors_text: 'Выберите два цвета для стилизации форума. Первый будет использоваться в качестве цвета подсветки, второй
+        будет использоваться в качестве фона стилевых элементов.'
+      custom_footer_heading: 'Нижний колонтитул'
+      custom_footer_text: '=> core.ref.custom_footer_text'
+      custom_header_heading: 'Верхний колонтитул'
+      custom_header_text: '=> core.ref.custom_header_text'
+      custom_styles_cannot_use_less_features: 'Возможности @import и data-uri запрещены в пользовательском коде LESS.'
+      custom_styles_heading: 'Пользовательские стили'
+      custom_styles_text: 'Настройка внешнего вида форума при помощи пользовательского кода LESS/CSS, который переопределяет
+        стандартные стилевые конструкции Flarum.'
+      description: 'Настройка цвета, логотипа и других элементов оформления.'
+      edit_css_button: 'Редактировать CSS'
+      edit_footer_button: '=> core.ref.custom_footer_title'
+      edit_header_button: '=> core.ref.custom_header_title'
+      enter_hex_message: 'Пожалуйста, введите код цвета в формате HEX.'
+      favicon_heading: Фавикон
+      favicon_text: 'Загрузите изображение, которое будет отображаться в качестве значка форума.'
+      logo_heading: Логотип
+      logo_text: 'Загрузите изображение, которое будет отображаться вместо названия форума.'
+      title: Оформление
+      color_scheme_label: Цветовая схема (по умолчанию)
+      color_schemes:
+        auto_mode_label: Пользовательская система или настроенное предпочтение
+        dark_hc_mode_label: => core.ref.dark_hc_mode_label
+        dark_mode_label: => core.ref.dark_mode_label
+        light_hc_mode_label: => core.ref.light_hc_mode_label
+        light_mode_label: => core.ref.light_mode_label
+    basics:
+      all_discussions_label: '=> core.ref.all_discussions'
+      default_language_heading: 'Язык по умолчанию'
+      description: 'Настройка названия форума, локализации и других основных параметров.'
+      display_name_driver_options:
+        username: Имя пользователя
+      display_name_heading: 'Отображаемое имя'
+      display_name_text: 'Выберите драйвер, который должен использоваться для отображаемых имён пользователей. По умолчанию,
+        используется username.'
+      forum_description_heading: 'Описание форума'
+      forum_description_text: 'Введите краткое описание сообщества. Описание появится в одноимённом meta-теге и будет использоваться
+        поисковыми системами.'
+      forum_title_heading: 'Название форума'
+      home_page_heading: 'Главная страница'
+      home_page_text: 'Выберите страницу, которую пользователи будут видеть первой при посещении форума.'
+      show_language_selector_label: 'Показывать переключатель языка'
+      slug_driver_options:
+        discussions:
+          default: удостоверение личности с пулей
+          utf8: Идентификатор с ярлыком UTF-8
+        users:
+          default: Имя пользователя
+          id: ИДЕНТИФИКАТОР
+      slug_driver_heading: 'Драйвер путей: {model}'
+      slug_driver_text: 'Выберите драйвер, который будет использоваться при создании семантических путей (URL) для этой модели.'
+      title: Основные
+      welcome_banner_heading: 'Баннер приветствия'
+      welcome_banner_text: 'Введите текст, который будет отображаться на всех страницах форума. Используйте этот элемент для
+        того, чтобы приветствовать гостей форума.'
+    create_user:
+      email_placeholder: '=> core.ref.email'
+      email_confirmed_label: 'Требовать подтверждения адреса email'
+      password_placeholder: '=> core.ref.password'
+      submit_and_create_another_button: 'Создать и добавить ещё'
+      submit_button: Создать
+      title: 'Новый пользователь'
+      use_random_password: 'Сгенерировать пароль'
+      username_placeholder: '=> core.ref.username'
+    dashboard:
+      clear_cache_button: 'Очистить кэш'
+      description: 'Панель управления форумом.'
+      info_button: Информация о системе
+      info_modal:
+        title: Информация о системе
+        copy_button: Копировать в буфер обмена
+        copy_success: Системная информация скопирована в буфер обмена.
+        copy_error: Не удалось скопировать в буфер обмена
+      io_error_message: 'Не удалось записать в файловую систему. Проверьте права доступа к файловой системе и попробуйте ещё
+        раз. Или попробуйте запустить из командной строки.'
+      status:
+        headers:
+          scheduler-status: Планировщик
+          queue-driver: 'Драйвер очереди'
+          session-driver: 'Драйвер сеанса'
+        scheduler:
+          active: Активно
+          inactive: Неактивно
+          never-run: 'Никогда не выполнялось'
+      title: 'Панель управления'
+      toggle_advanced_page_button: Переключить расширенную страницу
+      tools_button: Инструменты
+    debug-warning:
+      detail: "При активном режиме <code>отладки</code>, Flarum будет перестраивать <code>JavaScript</code> и <code>CSS</code>
+        при каждом запросе. Это может привести к утечке потенциально важной информации, например, пароли баз данных, переменные
+        окружения и т.п.\n\nНастоятельно рекомендуется отключить режим <code>отладки</code> в Вашем файле <code>config.php</code>.
+        Дополнительную информацию смотрите в <link>документации Flarum</link>.\n"
+      label: 'Включён режим отладки'
+    edit_css:
+      customize_text: 'Настройка внешнего вида форума при помощи пользовательского кода LESS/CSS, который переопределяет <a>стандартные
+        стилевые конструкции</a> Flarum.'
+      submit_button: '=> core.ref.save_changes'
+      title: 'Редактирование CSS'
+    edit_footer:
+      customize_text: '=> core.ref.custom_footer_text'
+      submit_button: '=> core.ref.save_changes'
+      title: '=> core.ref.custom_footer_title'
+    edit_group:
+      color_label: '=> core.ref.color'
+      delete_button: 'Удалить группу'
+      delete_confirmation: 'Вы уверены, что хотите удалить группу? Пользователи в этой группе НЕ будут удалены.'
+      hide_label: 'Скрытая группа'
+      icon_label: '=> core.ref.icon'
+      icon_text: '=> core.ref.icon_text'
+      name_label: Название
+      plural_placeholder: 'Множественное число'
+      singular_placeholder: 'Единственное число'
+      submit_button: '=> core.ref.save_changes'
+      title: 'Создание группы'
+    edit_header:
+      customize_text: '=> core.ref.custom_header_text'
+      submit_button: '=> core.ref.save_changes'
+      title: '=> core.ref.custom_header_title'
+    email:
+      addresses_heading: Адреса
+      description: 'Настройка драйвера, параметров и адресов, которые будут использоваться на Вашем форуме для отправки email.'
+      driver_heading: 'Выберите драйвер'
+      driver_label: Драйвер
+      format:
+        multipart_option: Многочастный (рекомендуется)
+        plain_option: Обычный текст
+        html_option: HTML
+      format_heading: Формат исходящей электронной почты
+      format_help: "Выберите формат, в котором будут отправляться исходящие электронные письма. Рекомендуемый вариант — <code>multipart</code>,
+        так как это позволит почтовому клиенту вашего пользователя отображать наиболее подходящий формат."
+      from_label: Отправитель
+      mail_encryption_label: Шифрование
+      mail_encryption_tls_help: "Соединение запускается в незашифрованном виде и обновляется до TLS (STARTTLS). Обычно используется
+        с портом 587 или 25."
+      mail_encryption_ssl_help: "Соединение шифруется с самого начала (неявный TLS). Обычно используется с портом 465."
+      mail_encryption_none_help: "Никакого шифрования. Не рекомендуется для производственного использования."
+      mail_host_label: Хост
+      mail_mailgun_domain_label: Домен
+      mail_mailgun_region_label: Регион
+      mail_mailgun_secret_label: 'Секретный ключ'
+      mail_password_label: '=> core.ref.password'
+      mail_port_label: Порт
+      mail_username_label: '=> core.ref.username'
+      mailgun_heading: 'Настройки Mailgun'
+      not_sending_message: 'Сейчас Flarum не отправляет электронные письма. Это может быть связано с выбранным драйвером или
+        параметрами конфигурации.'
+      send_test_mail_button: Отправить
+      send_test_mail_heading: 'Отправить пробное письмо'
+      send_test_mail_success: 'Пробное письмо успешно отправлено!'
+      send_test_mail_text: 'На Ваш адрес электронной почты {email} будет отправлено письмо с использованием указанной выше
+        конфигурации.'
+      smtp_heading: 'Настройки SMTP'
+      smtp_description: "Настройте параметры SMTP-соединения. Общие конфигурации: порт 587 с TLS или порт 465 с SSL."
+      title: '=> core.ref.email'
+    extension:
+      abandoned_no_replacement: Это расширение больше не поддерживается его автором и может не получать обновлений.
+      abandoned_with_replacement: "Это расширение было заменено на {replacement}. Рассмотрите возможность перехода на сменный
+        пакет."
+      configure_scopes: 'Настройка областей'
+      confirm_purge: 'Это действие очистит (удалит) записи в базе данных и ресурсы, связанные с расширением; само расширение из
+        файлов не удаляется. Полное удаление расширения должно быть выполнено при помощи Composer. Вы уверены, что хотите продолжить?'
+      database_driver_mismatch: Это расширение не поддерживает настроенный вами драйвер базы данных.
+      deprecated: Устарело
+      disabled: Отключено
+      enable_to_see: 'Включите расширение для отображения и изменения его настроек.'
+      enabled: Включено
+      info_links:
+        discuss: Обсуждение
+        documentation: Документация
+        donate: Поддержать
+        source: 'Исходный код'
+        support: Помощь
+        website: Сайт
+      no_permissions: 'Расширение не имеет разрешений.'
+      no_settings: 'Расширение не имеет настроек.'
+      open_modal: 'Открыть настройки'
+      permissions_title: Разрешения
+      purge_button: Очистить данные
+      readme:
+        button_label: ЧИТАЙТЕ
+        no_readme: 'Расширение не имеет файл README'
+        title: 'Документация {extName}'
+      replaced: Заменено
+      safe_mode_warning: Безопасный режим в настоящее время включен. Расширения не загружаются, поэтому их настройки 
+        недоступны.
+    header:
+      get_help: Помощь
+      log_out_button: '=> core.ref.log_out'
+      search_placeholder: Поиск...
+      search_role_label: Поиск
+    loading:
+      title: 'Пожалуйста, подождите...'
+    models:
+      discussions: => core.ref.discussions
+      posts: => core.ref.posts
+      users: => core.ref.users
+    nav:
+      advanced_button: => core.admin.advanced.title
+      advanced_title: => core.admin.advanced.description
+      appearance_button: '=> core.admin.appearance.title'
+      appearance_title: '=> core.admin.appearance.description'
+      basics_button: '=> core.admin.basics.title'
+      basics_title: '=> core.admin.basics.description'
+      categories:
+        authentication: Аутентификация
+        core: 'Настройки форума'
+        discussion: Общение
+        feature: Возможности
+        formatting: Форматирование
+        language: Языки
+        moderation: Модерация
+        other: 'Другие расширения'
+        theme: Оформление
+      dashboard_button: '=> core.admin.dashboard.title'
+      dashboard_title: '=> core.admin.dashboard.description'
+      email_button: '=> core.ref.email'
+      email_title: '=> core.admin.email.description'
+      permissions_button: '=> core.admin.permissions.title'
+      permissions_title: '=> core.admin.permissions.description'
+      userlist_button: '=> core.admin.users.title'
+      userlist_title: '=> core.admin.users.description'
+      search_placeholder: 'Поиск расширений...'
+    permissions:
+      allow_hide_own_posts_label: 'Разрешить удалять своих сообщений'
+      allow_post_editing_label: 'Разрешить изменять сообщение'
+      allow_renaming_label: 'Разрешить изменять название темы'
+      create_access_token_label: 'Создать токен'
+      create_heading: Создание
+      delete_discussions_forever_label: 'Удалять темы (навсегда)'
+      delete_discussions_label: 'Удалять темы'
+      delete_posts_forever_label: 'Удалять сообщения (навсегда)'
+      delete_posts_label: 'Удалять сообщения'
+      description: 'Настройка прав доступа к различным местам и функциям форума.'
+      edit_posts_label: 'Редактировать сообщения'
+      edit_users_label: 'Редактировать пользователей'
+      edit_users_credentials_label: 'Редактировать учётные данные пользователя'
+      edit_users_groups_label: 'Редактировать группы пользователя'
+      global_heading: Глобальные
+      moderate_heading: Модерация
+      moderate_access_tokens_label: 'Модерация токенов'
+      new_group_button: 'Новая группа'
+      participate_heading: Участие
+      post_without_throttle_label: 'Отвечать подряд без ожидания'
+      read_heading: Чтение
+      remove_scope_label: Удалить область действия {scope}
+      remove_scope_confirmation: Вы уверены, что хотите удалить область действия {scope}?
+      rename_discussions_label: 'Изменять название тем'
+      reply_to_discussions_label: 'Отвечать в теме'
+      search_users_label: 'Искать пользователей'
+      sign_up_label: 'Регистрация пользователей'
+      start_discussions_label: 'Создавать темы'
+      title: Разрешения
+      view_forum_label: 'Смотреть форум (тем и пользователей)'
+      view_hidden_groups_label: 'Смотреть скрытые группы'
+      view_last_seen_at_label: 'Смотреть время последнего посещения'
+      view_post_ips_label: 'Смотреть IP адреса'
+    permissions_controls:
+      allow_indefinitely_button: Неограниченно
+      allow_never_button: '=> core.ref.never'
+      allow_some_minutes_button: '{count, plural, one {На # минуту} few {На # минуты} other {На # минут}}'
+      allow_ten_minutes_button: 'На 10 минут'
+      allow_until_reply_button: 'До ответа'
+      everyone_button: Все
+      members_button: '=> core.group.members'
+      signup_closed_button: Закрыто
+      signup_open_button: Открыть
+    search_source:
+      general:
+        heading: Общий
+    settings:
+      saved_message: 'Настройки сохранены.'
+      select_dropdown_custom_label: Обычай
+      submit_button: '=> core.ref.save_changes'
+    upload_image:
+      remove_button: '=> core.ref.remove'
+      upload_button: 'Выбрать изображение...'
+    users:
+      create_user_button: 'Новый пользователь'
+      description: 'Список всех пользователей форума.'
+      grid:
+        columns:
+          display_name:
+            title: 'Отображаемое имя'
+          email:
+            title: '=> core.ref.email'
+            visibility_hide: 'Скрыть email'
+            visibility_show: 'Показать email'
+          group_badges:
+            no_badges: Нет
+            title: Группы
+          join_time:
+            title: Регистрация
+          user_actions:
+            title: Действия
+            edit_user:
+              button: => core.ref.edit
+              tooltip: Изменить {username}
+          user_id:
+            title: ИДЕНТИФИКАТОР
+          username:
+            profile_link_tooltip: 'Посмотреть профиль {username}'
+            title: '=> core.ref.username'
+        invalid_column_content: 'Недопустимое содержимое'
+      search_placeholder: '=> core.ref.search_users'
+      title: '=> core.ref.users'
+      total_users: 'Всего пользователей: {count}'
+  forum:
+    change_email:
+      confirm_password_placeholder: '=> core.ref.confirm_password'
+      confirmation_message: '=> core.ref.confirmation_email_sent'
+      dismiss_button: '=> core.ref.okay'
+      incorrect_password_message: 'Введённый Вами пароль неверный.'
+      submit_button: '=> core.ref.save_changes'
+      title: '=> core.ref.change_email'
+    change_password:
+      send_button: 'Отправить пароль'
+      text: 'Нажмите на кнопку ниже для отправки ссылки изменения пароля на Ваш email.'
+      title: '=> core.ref.change_password'
+    composer:
+      close_tooltip: Закрыть
+      exit_full_screen_tooltip: 'Выход из полноэкранного режима'
+      full_screen_tooltip: Развернуть
+      minimize_tooltip: Свернуть
+      preview_tooltip: 'Предварительный просмотр'
+    composer_discussion:
+      body_placeholder: 'Введите сообщение...'
+      discard_confirmation: 'Вы не создали тему. Вы хотите отменить тему?'
+      submit_button: Создать
+      title: '=> core.ref.start_a_discussion'
+      title_placeholder: 'Название темы...'
+    composer_edit:
+      discard_confirmation: 'Вы не сохранили изменения. Вы хотите отказаться от них?'
+      edited_message: 'Ваши правки сохранены.'
+      post_link: 'Сообщение #{number} в {discussion}'
+      submit_button: '=> core.ref.save_changes'
+      view_button: '=> core.ref.view'
+    composer_reply:
+      body_placeholder: '=> core.ref.write_a_reply'
+      discard_confirmation: 'Вы не отправили свой ответ. Вы хотите отменить сообщение?'
+      posted_message: 'Ваше сообщение опубликовано.'
+      submit_button: Отправить
+      view_button: '=> core.ref.view'
+    discussion_controls:
+      cannot_reply_button: 'Нельзя ответить'
+      cannot_reply_text: 'У Вас нет разрешения для публикации ответа в этой темы.'
+      delete_button: '=> core.ref.delete'
+      delete_confirmation: 'Вы уверены, что хотите удалить тему?'
+      delete_forever_button: '=> core.ref.delete_forever'
+      log_in_to_reply_button: 'Войти для ответа'
+      rename_button: '=> core.ref.rename'
+      reply_button: '=> core.ref.reply'
+      restore_button: '=> core.ref.restore'
+      toggle_dropdown_accessible_label: 'Выпадающее меню управления темой'
+    discussion_list:
+      empty_text: 'Кажется, здесь нет тем.'
+      load_more_button: '=> core.ref.load_more'
+      replied_text: '{username} ответил(а) {ago}'
+      skip_discussion_list_pane: Пропустить панель списка обсуждений
+      started_text: '{username} создал(а) {ago}'
+      total_replies_a11y_label: '{count, plural, one {# ответ} few {# ответа} other {# ответов}}'
+      unread_replies_a11y_label: '{count, plural, one {# непрочитанный ответ} few {# непрочитанных ответа} other {# непрочитанных
+        ответов}}. Отметить {count, plural, one {ответ} few {ответа} other {ответов}} как прочитано.'
+    forgot_password:
+      dismiss_button: '=> core.ref.okay'
+      email_placeholder: '=> core.ref.email'
+      email_sent_message: 'Если введённый Вами адрес email зарегистрирован на этом сайте, мы отправим Вам письмо, содержащее
+        ссылку для восстановления пароля. Проверьте папку со спамом, если Вы не получили письмо в течение нескольких минут.'
+      not_found_message: 'Пользователи с указанным email не найдены.'
+      submit_button: 'Восстановить пароль'
+      text: 'Введите свой email и мы отправим Вам ссылку для сброса пароля.'
+      title: 'Забыли пароль?'
+    header:
+      admin_button: Управление
+      back_to_index_tooltip: 'Вернуться к списку тем'
+      locale_dropdown_accessible_label: 'Изменить язык форума'
+      log_in_link: '=> core.ref.log_in'
+      log_out_button: '=> core.ref.log_out'
+      profile_button: Профиль
+      search_placeholder: Поиск...
+      search_role_label: Поиск...
+      session_dropdown_accessible_label: 'Меню опций сеанса'
+      settings_button: '=> core.ref.settings'
+      sign_up_link: '=> core.ref.sign_up'
+    index:
+      all_discussions_link: '=> core.ref.all_discussions'
+      cannot_start_discussion_button: 'Нельзя создать'
+      mark_all_as_read_confirmation: 'Вы уверены, что хотите отметить все темы прочитанными?'
+      mark_all_as_read_tooltip: '=> core.ref.mark_all_as_read'
+      meta_title_text: '=> core.ref.all_discussions'
+      refresh_tooltip: Обновить
+      start_discussion_button: '=> core.ref.start_a_discussion'
+      skip_to_main_content: Перейти к основному содержанию
+      toggle_sidenav_dropdown_accessible_label: 'Меню навигации'
+    index_sort:
+      latest_button: 'По обновлению'
+      newest_button: Новое
+      oldest_button: Старое
+      relevance_button: 'По релевантности'
+      toggle_dropdown_accessible_label: 'Изменить сортировку списка тем'
+      top_button: Популярное
+    log_in:
+      forgot_password_link: 'Забыли пароль?'
+      invalid_login_message: 'Ваши данные для входа некорректны.'
+      password_placeholder: '=> core.ref.password'
+      remember_me_label: 'Запомнить меня'
+      sign_up_text: 'У Вас нет аккаунта? <a>Регистрация</a>'
+      submit_button: '=> core.ref.log_in'
+      title: '=> core.ref.log_in'
+      username_or_email_placeholder: 'Имя пользователя или email'
+    notifications:
+      delete_all_confirm: 'Вы уверены, что хотите удалить все уведомления? Это действие невозможно отменить.'
+      delete_all_tooltip: 'Удалить все уведомления'
+      discussion_renamed_text: '{username} изменил(а) название'
+      empty_text: 'Уведомления отсутствуют'
+      mark_all_as_read_tooltip: '=> core.ref.mark_all_as_read'
+      mark_as_read_tooltip: 'Отметить как прочитанное'
+      title: '=> core.ref.notifications'
+      toggle_dropdown_accessible_label: 'Смотреть уведомления'
+      tooltip: '=> core.ref.notifications'
+    post:
+      edited_text: Изменено
+      edited_tooltip: '{username} изменил(а) {ago}'
+      number_tooltip: 'Сообщение #{number}'
+    post_controls:
+      delete_button: '=> core.ref.delete'
+      delete_confirmation: 'Вы уверены, что хотите удалить сообщение навсегда? Это действие невозможно отменить.'
+      delete_forever_button: '=> core.ref.delete_forever'
+      edit_button: '=> core.ref.edit'
+      hide_confirmation: 'Вы уверены, что хотите удалить сообщение?'
+      restore_button: '=> core.ref.restore'
+      toggle_dropdown_accessible_label: 'Выпадающее меню управления сообщением'
+    post_list:
+      empty_text: Похоже, здесь нет сообщений.
+      in_discussion_text: "В {discussion}"
+      load_more_button: => core.ref.load_more
+    post_scrubber:
+      now_link: Сейчас
+      original_post_link: Начало
+      unread_text: '{count} не прочитано'
+      viewing_text: '{count, plural, one {{index} / {formattedCount} сообщения} other {{index} / {formattedCount} сообщений}}'
+    post_stream:
+      discussion_renamed_old_tooltip: 'Старое название: "{old}"'
+      discussion_renamed_text: '{username} изменил(а) название на "{new}".'
+      load_more_button: '=> core.ref.load_more'
+      reply_placeholder: '=> core.ref.write_a_reply'
+      time_lapsed_text: '{period} спустя'
+    posts_sort:
+      newest_button: => core.ref.newest
+      oldest_button: => core.ref.oldest
+      relevance_button: => core.ref.relevance
+    posts:
+      meta_title_text: Опубликовать результаты поиска
+      refresh_tooltip: => core.ref.refresh
+    rename_discussion:
+      submit_button: '=> core.ref.rename'
+      title: 'Изменение названия'
+    security:
+      browser_on_operating_system: '{browser} на {os}'
+      cannot_terminate_current_session: 'Невозможно завершить текущий активный сеанс. Вы можете самостоятельно выйти из системы.'
+      created: Создано
+      current_active_session: 'Текущий активный сеанс'
+      developer_tokens_heading: 'Токены разработчика'
+      empty_text: 'Похоже, здесь не на что смотреть.'
+      global_logout:
+        heading: 'Глобальный выход'
+        help_text: 'Удаляет cookie текущего сеанса, завершает все сеансы, отзывает токены разработчика и делает недействительными
+          все электронные письма со ссылками на подтверждение или сброса пароля.'
+        log_out_button: '=> core.ref.log_out'
+      hide_access_token: 'Скрыть токен'
+      last_activity: 'Последняя активность'
+      never: Никогда
+      new_access_token_button: '=> core.ref.new_token'
+      new_access_token_modal:
+        submit_button: 'Создать токен'
+        title: '=> core.ref.new_token'
+        title_placeholder: Название
+      revoke_access_token: Отозвать
+      revoke_access_token_confirmation: '=> core.ref.generic_confirmation_message'
+      sessions_heading: 'Активные сеансы'
+      session_terminated: '{count, plural, one {Сеанс завершён} few {# сеанса завершено} other {# сеансов завершено}}.'
+      session_termination_failed: 'Произошла ошибка при завершении Ваших сеансов.'
+      show_access_token: 'Смотреть токен'
+      terminate_all_other_sessions: 'Завершить все остальные сеансы'
+      terminate_all_other_sessions_confirmation: '=> core.ref.generic_confirmation_message'
+      terminate_session: Завершено
+      title: '=> core.ref.security'
+      token_revoked: 'Токен отозван.'
+      token_item_title: '{title} – {token}'
+      token_title_placeholder: /
+    settings:
+      account_heading: Аккаунт
+      change_email_button: '=> core.ref.change_email'
+      change_password_button: '=> core.ref.change_password'
+      color_scheme_heading: Цветовая схема
+      color_schemes:
+        auto_mode_label: Системные предпочтения
+        dark_hc_mode_label: => core.ref.dark_hc_mode_label
+        dark_mode_label: => core.ref.dark_mode_label
+        light_hc_mode_label: => core.ref.light_hc_mode_label
+        light_mode_label: => core.ref.light_mode_label
+      notification_checkbox_a11y_label_template: 'Получать "{description}" уведомления через {method}'
+      notifications_heading: '=> core.ref.notifications'
+      notify_by_email_heading: '=> core.ref.email'
+      notify_by_web_heading: Интернет
+      notify_discussion_renamed_label: 'Изменение названия моей темы'
+      privacy_disclose_online_label: 'Показывать мой статус online'
+      privacy_heading: Конфиденциальность
+      title: '=> core.ref.settings'
+    sign_up:
+      dismiss_button: '=> core.ref.okay'
+      email_placeholder: '=> core.ref.email'
+      log_in_text: 'Вы уже зарегистрированы? <a>Войти</a>'
+      password_placeholder: '=> core.ref.password'
+      submit_button: '=> core.ref.sign_up'
+      title: '=> core.ref.sign_up'
+      username_placeholder: '=> core.ref.username'
+      welcome_text: 'Привет, {username}!'
+    user:
+      avatar_remove_button: '=> core.ref.remove'
+      avatar_upload_button: Изменить
+      avatar_upload_tooltip: 'Загрузить аватар'
+      discussions_link: '=> core.ref.discussions'
+      in_discussion_text: 'В {discussion}'
+      joined_date_text: 'Регистрация: {ago}'
+      online_text: 'В сети'
+      posts_empty_text: 'Кажется, здесь нет сообщений.'
+      posts_link: '=> core.ref.posts'
+      posts_load_more_button: '=> core.ref.load_more'
+      security_link: '=> core.ref.security'
+      settings_link: '=> core.ref.settings'
+    user_controls:
+      button: Управление
+      delete_button: '=> core.ref.delete'
+      delete_confirmation: 'Вы уверены, что хотите удалить пользователя? Сообщения пользователя НЕ будут удалены.'
+      delete_error_message: 'Не удалось удалить пользователя <i>{username} ({email})</i>'
+      delete_success_message: 'Пользователь <i>{username} ({email})</i> удалён'
+      edit_button: '=> core.ref.edit'
+      toggle_dropdown_accessible_label: 'Выпадающее меню управления пользователем'
+    user_email_confirmation:
+      alert_message: '=> core.ref.confirmation_email_sent'
+      resend_button: 'Повторно отправить подтверждение по email'
+      sent_message: Отправлено
+    welcome_hero:
+      hide: 'Скрыть сообщение приветствия'
+  lib:
+    debug_button: Отладка
+    alert:
+      dismiss_a11y_label: Закрыть
+    badge:
+      hidden_tooltip: Скрыто
+    dropdown:
+      toggle_dropdown_accessible_label: 'Выпадающее меню'
+    data_segment:
+      label: '{label}:'
+    edit_user:
+      activate_button: 'Активировать пользователя'
+      email_heading: '=> core.ref.email'
+      email_label: '=> core.ref.email'
+      groups_heading: Группы
+      password_heading: '=> core.ref.password'
+      password_label: '=> core.ref.password'
+      set_password_label: 'Установить новый пароль'
+      submit_button: '=> core.ref.save_changes'
+      title: '=> core.ref.edit_user'
+      username_heading: '=> core.ref.username'
+      username_label: '=> core.ref.username'
+      nothing_available: 'Вам не разрешено редактировать этого пользователя.'
+    error:
+      circular_dependencies_message: 'Обнаружены циклические зависимости: {extensions}. Прерывание действия. Пожалуйста, отключите
+        одно из расширений и попробуйте ещё раз.'
+      db_error_message: "Запрос к базе данных не выполнен. Это может быть вызвано несовместимостью расширения и драйвера вашей
+        базы данных."
+      dependent_extensions_message: 'Невозможно отключить {extension}, пока не будут отключены следующие зависимые расширения:
+        {extensions}'
+      extension_initialiation_failed_message: '{extension} не удалось инициализировать. Проверьте консоль браузера для получения
+        дополнительной информации.'
+      extension_runtime_failed_message: "Во время работы {extension} произошла ошибка. Проверьте консоль браузера для получения
+        дополнительной информации."
+      generic_message: 'Упс! Что-то пошло не так. Пожалуйста, обновите страницу и попробуйте ещё раз.'
+      generic_cross_origin_message: 'Упс! Что-то пошло не так при выполнении запроса cross-origin. Пожалуйста, обновите страницу
+        и попробуйте ещё раз.'
+      missing_dependencies_message: 'Невозможно включить {extension}, пока не будут включены следующие зависимые расширения:
+        {extensions}'
+      not_found_message: 'Запрашиваемый ресурс не найден.'
+      payload_too_large_message: 'Нагрузка при запросе была слишком большая.'
+      permission_denied_message: 'У Вас нет прав доступа для выполнения этого действия.'
+      rate_limit_exceeded_message: 'Вы размещаете сообщения слишком часто. Пожалуйста, попробуйте ещё раз через несколько
+        секунд.'
+      render_failed_message: 'К сожалению, при отображении страницы произошла ошибка. Если Вы пользователь, повторите попытку
+        позже. Если Вы администратор, посмотрите журналы Flarum для получения дополнительной информации.'
+    gambits:
+      group_keys:
+        allows: позволяет
+        has: имеет
+        is: является
+      discussions:
+        author:
+          key: автор
+          hint: имя пользователя или список имен пользователей, разделенных запятыми
+        created:
+          key: созданный
+          hint: 31 декабря 2020 г. или 31 декабря 2020 г...30 сентября 2021 г.
+        hidden:
+          key: скрытый
+        unread:
+          key: непрочитанный
+      posts:
+        discussion:
+          key: обсуждение
+          hint: идентификатор обсуждения
+      users:
+        email:
+          key: электронная почта
+          hint: пример@machine.local
+        group:
+          key: группа
+          hint: названия групп в единственном или множественном числе
+    input:
+      clear_button: Очистить ввод
+    loading_indicator:
+      accessible_label: '=> core.ref.loading'
+    meta_titles:
+      with_page_title: '{pageNumber, plural, =1 {{pageTitle} - {forumName}} other {{pageTitle}: Страница # - {forumName}}}'
+      without_page_title: '{pageNumber, plural, =1 {{forumName}} other {Страница # - {forumName}}}'
+    modal:
+      close: Закрыть
+    multi_select:
+      placeholder: Выберите несколько вариантов
+    nav:
+      drawer_button: 'Открыть панель навигации'
+    notices:
+      bisecting: Запуск процесса разделения расширения пополам, чтобы определить, какое расширение вызывает проблему.
+      bisecting_continue: Продолжить деление пополам
+      maintenance_mode_low: Спущен на техническое обслуживание. Доступ к форуму имеют только администраторы.
+      maintenance_mode_safe: Не работает на техническое обслуживание в безопасном режиме. Доступ к форуму имеют только 
+        администраторы, расширения не загружаются.
+    number_suffix:
+      kilo_text: К
+      mega_text: М
+    pagination:
+      back_button: Предыдущая страница
+      first_button: Перейти на первую страницу
+      go_to_page_textbox_a11y_label: Перейти непосредственно к номеру страницы
+      last_button: Перейти на последнюю страницу
+      next_button: Следующая страница
+      page_counter: Страница {current} из {total}
+    search:
+      gambit_plus_button_a11y_label: Добавьте положительный фильтр
+      gambit_minus_button_a11y_label: Добавить отрицательный фильтр
+      title: Поиск
+      no_results_text: Похоже, здесь нет результатов.
+      no_search_text: Вы еще ничего не искали.
+      options_heading: Параметры поиска
+      placeholder: Поиск...
+      preview_heading: Предварительный просмотр поиска
+      search_clear_button_accessible_label: Очистить поисковый запрос
+    search_source:
+      discussions:
+        all_button: 'Искать во всех обсуждениях запроса "{query}"'
+        heading: => core.ref.discussions
+      posts:
+        all_button: 'Искать во всех сообщениях по запросу "{query}"'
+        heading: => core.ref.posts
+      users:
+        heading: => core.ref.users
+    series:
+      glue_text: ','
+      three_text: '{first}, {second} и {third}'
+      two_text: '{first} и {second}'
+    user_selection_modal:
+      empty_results: Пользователей, соответствующих вашему запросу, не найдено.
+      max_items_to_select: "{count, plural, one {Select up to # user} other {Select up to # users}}"
+      search_placeholder: => core.ref.search_users
+      submit_button: => core.ref.okay
+      title: Выберите подходящих пользователей
+    username:
+      deleted_text: '[удалено]'
+    datetime_formats:
+      fullTime: LLLL
+      humanTimeShort: 'D MMM'
+      humanTimeLong: ll
+      scrubber: DD/MM/YYYY
+      userListJoinDate: LLL
+  views:
+    admin:
+      extensions:
+        caption: '=> core.ref.extensions'
+        disable: Отключить
+        empty: 'Нет установленных расширений'
+        enable: Включить
+        name: 'Название расширения'
+        package_name: 'Название пакета'
+        version: Версия
+      info:
+        caption: 'Информация приложения'
+      title: Управление
+    confirm_email:
+      submit_button: '=> core.ref.confirm_email'
+      text: 'Для подтверждения адреса email, нажмите на кнопку ниже.'
+      title: '=> core.ref.confirm_email'
+    content:
+      javascript_disabled_message: 'Этот сайт лучше всего просматривать в современном браузере с включённым JavaScript.'
+      load_error_message: 'Что-то пошло не так при попытке загрузить полную версию этого сайта. Попробуйте обновить страницу
+        с удалением кэша браузера (CTRL+F5) для решения этой проблемы.'
+      loading_text: '=> core.ref.loading'
+    discussion:
+      next_page_button: '=> core.ref.next_page'
+      previous_page_button: '=> core.ref.previous_page'
+    error:
+      csrf_token_mismatch: 'Вы были неактивны продолжительное время.'
+      csrf_token_mismatch_return_link: 'Вернитесь назад и попробуйте ещё раз'
+      invalid_confirmation_token: 'Ссылка для подтверждения недействительна или уже была использована.'
+      maintenance_mode_link: Вход администратора
+      maintenance_mode_message: В настоящее время этот форум закрыт на техническое обслуживание. Пожалуйста, зайдите 
+        позже.
+      maintenance_mode_title: Обслуживание
+      not_authenticated: 'У Вас нет прав доступа к этой странице. Попробуйте ещё раз после входа в свой аккаунт.'
+      not_found: 'Страница по Вашему запросу не найдена.'
+      not_found_return_link: 'Вернуться на {forum}'
+      permission_denied: 'У Вас нет прав доступа к этой странице.'
+      unknown: 'Произошла ошибка при попытке загрузить страницу.'
+    index:
+      all_discussions_heading: '=> core.ref.all_discussions'
+      next_page_button: '=> core.ref.next_page'
+      previous_page_button: '=> core.ref.previous_page'
+    layout:
+      skip_to_content: Перейти к содержимому
+    log_out:
+      log_out_button: '=> core.ref.log_out'
+      log_out_confirmation: 'Вы уверены, что хотите выйти из {forum}?'
+      title: '=> core.ref.log_out'
+    log_in:
+      invalid_login_message: => core.ref.invalid_login_message
+      username_or_email_placeholder: => core.ref.username_or_email_placeholder
+      password_placeholder: => core.ref.password
+      remember_me_label: => core.ref.remember_me_label
+      submit_button: => core.ref.log_in
+      title: => core.ref.log_in
+    reset_password:
+      confirm_password_label: 'Подтвердить пароль'
+      new_password_label: 'Новый пароль'
+      submit_button: '=> core.ref.save_changes'
+      title: '=> core.ref.reset_your_password'
+    unsubscribe_email:
+      title: Подтверждение отмены подписки
+      return_to_forum: Вернуться на {forumTitle}
+      confirm_button: Подтверждать
+      immediate_helptext: Вы будете немедленно отписаны от подписки после подтверждения.
+      confirm_message: "Вы запросили отмену подписки на уведомления по электронной почте \"{type}\" от {forumTitle}."
+      success_message: "Вы успешно отписались от уведомлений «{type}» от {forumTitle}. Если вы хотите получать их снова, [обновите
+        настройки]({settingsLink})."
+      invalid_message: "Эта ссылка для отказа от подписки недействительна или уже использовалась. Чтобы узнать о любых изменениях
+        в ваших уведомлениях по электронной почте от {forumTitle}, [проверьте свои настройки]({settingsLink})."
+  api:
+    invalid_username_message: 'Имя пользователя может содержать только латинские буквы, цифры и тире.'
+    invalid_filter_type:
+      must_be_numeric_message: 'Фильтр {filter} должен быть числовым.'
+      must_not_be_array_message: 'Фильтр {filter} не должен быть массивом.'
+      must_not_be_multidimensional_array_message: 'Фильтр {filter} не должен быть многомерным массивом.'
+  email:
+    greeting: "Привет, {displayName}!"
+    signoff: "Команда {forumTitle}"
+    informational:
+      default_title: "Информация"
+      footer: "Это письмо было отправлено на адрес {userEmail} в качестве информационной службы, связанной с вашей учетной
+        записью на [{forumTitle}]({forumUrl})."
+      footer_plain: "Это письмо было отправлено на адрес {userEmail} в качестве информационной службы, связанной с вашей учетной
+        записью на {forumTitle}."
+    notification:
+      default_title: "Уведомление"
+      footer:
+        main_text: "Это письмо было отправлено на адрес {email}, поскольку вы подписаны на уведомления «{type}» на [{forumTitle}]({forumUrl})."
+        main_text_plain: "Это письмо было отправлено на адрес {email}, поскольку вы подписаны на уведомления «{type}» на {forumTitle}."
+        unsubscribe_text: "Если вы не хотите получать уведомления такого типа, [отмените подписку здесь]({unsubscribeLink})."
+        unsubscribe_text_plain: "Если вы не хотите получать уведомления такого типа, отмените подписку здесь: {unsubscribeLink}"
+        settings_text: "Управляйте настройками уведомлений [здесь]({settingsLink})."
+        settings_text_plain: "Управляйте настройками уведомлений здесь: {settingsLink}."
+    activate_account:
+      subject: 'Активация Вашего аккаунта'
+      body: "Здравствуйте, {username}!\n\nВы зарегистрировались на форуме {forum} с этим адресом электронной почты.\n\nНажмите
+        на ссылку и Ваш аккаунт будет активирован:\n{url}\n\nЕсли Вы не регистрировались, пожалуйста, проигнорируйте это сообщение.\n"
+    confirm_email:
+      subject: 'Подтверждение нового адреса email'
+      body: "Здравствуйте, {username}!\n\nВы изменили адрес email на форуме {forum}.\n\nНажмите на ссылку и Ваш адрес email
+        будет подтверждён:\n{url}\n\nЕсли Вы не меняли адрес email, пожалуйста, проигнорируйте это сообщение.\n"
+    reset_password:
+      subject: '=> core.ref.reset_your_password'
+      body: "Здравствуйте, {username}!\n\nВы подали запрос на сброс пароля для аккаунта на форуме {forum}.\n\nНажмите на ссылку
+        для сброса пароля:\n{url}\n\nЕсли Вы не хотите менять свой пароль, просто проигнорируйте это сообщение и ничего не
+        произойдёт.\n"
+    send_test:
+      subject: 'Проверка email Flarum'
+      body: "Здравствуйте, {username}!\n\nЭто проверочное письмо означает, что Ваши параметры email настроены корректно.\n\
+        \nЕсли Вы инициализировали данную проверку, то Вы корректно настроили отправку email с форума.\n\nЕсли Вы НЕ инициализировали
+        данную проверку, проигнорируйте это сообщение.\n"
+  ref:
+    all_discussions: 'Все темы'
+    change_email: 'Изменить email'
+    change_password: 'Изменить пароль'
+    color: Цвет
+    confirm_password: 'Подтвердить пароль'
+    confirm_email: 'Подтвердить email'
+    confirmation_email_sent: 'Мы отправили письмо с подтверждением на адрес {email}. Если Вы не получите письмо в ближайшее
+      время, проверьте папку со спамом.'
+    custom_footer_text: 'HTML, который будет отображаться в самой нижней части страницы.'
+    custom_footer_title: 'Редактирование нижнего колонтитула'
+    custom_header_text: 'HTML, который будет отображаться в самой верхней части страницы, над заголовком Flarum.'
+    custom_header_title: 'Редактирование верхнего колонтитула'
+    dark_hc_mode_label: Темный режим высокой контрастности
+    dark_mode_label: Темный режим
+    delete: Удалить
+    delete_forever: 'Удалить (навсегда)'
+    discussions: Темы
+    edit: Править
+    edit_user: 'Изменить пользователя'
+    email: Электронная почта
+    extensions: Расширения
+    generic_confirmation_message: 'Вы уверены, что хотите продолжить? Это действие невозможно отменить.'
+    icon: Иконка
+    icon_text: 'Введите название любого класса иконки <a>Font Awesome</a>, <em>включая</em> префикс <code>fas fa-</code>.'
+    invalid_login_message: Ваши данные для входа были неверными.
+    light_hc_mode_label: Светлый режим высокой контрастности
+    light_mode_label: Светлый режим
+    load_more: 'Показать ещё'
+    loading: Загрузка...
+    log_in: Войти
+    log_out: Выйти
+    mark_all_as_read: 'Отметить всё как прочитанное'
+    never: Никогда
+    new_token: 'Новый токен'
+    newest: Новейший
+    next_page: 'Следующая страница'
+    notifications: Уведомления
+    okay: ОК
+    oldest: Самый старый
+    password: Пароль
+    posts: Сообщения
+    previous_page: 'Предыдущая страница'
+    relevance: Актуальность
+    remember_me_label: Запомнить меня
+    remove: Удалить
+    rename: Переименовать
+    reply: Ответить
+    refresh: Обновить
+    reset_your_password: 'Сбросить пароль'
+    restore: Восстановить
+    save_changes: Сохранить
+    search_users: 'Поиск пользователей'
+    security: Безопасность
+    settings: Настройки
+    sign_up: Регистрация
+    some_others: '{count, plural, one {# другой} other {# других}}'
+    start_a_discussion: 'Создать тему'
+    username: 'Имя пользователя'
+    username_or_email_placeholder: Имя пользователя или адрес электронной почты
+    users: Пользователи
+    view: Посмотреть
+    write_a_reply: 'Написать ответ...'
+    you: Вы
+  group:
+    admin: Админ
+    admins: Админы
+    guest: Гость
+    guests: Гости
+    member: Пользователь
+    members: Пользователи
+    mod: Модер
+    mods: Модеры

@@ -1,0 +1,146 @@
+validation:
+  accepted: ':attribute должно быть принято.'
+  accepted_if: "Поле :attribute должно быть принято, если :other равно :value."
+  active_url: ':attribute содержит некорректный URL.'
+  after: ':attribute должно быть датой после :date.'
+  after_or_equal: ':attribute должно быть датой после или равным :date.'
+  alpha: ':attribute должно содержать только буквы.'
+  alpha_dash: ':attribute должно содержать только буквы, цифры и тире.'
+  alpha_num: ':attribute должно содержать только буквы и цифры.'
+  array: ':attribute должно быть массивом.'
+  ascii: "Поле :attribute должно содержать только однобайтовые буквенно-цифровые символы и символы."
+  before: ':attribute должно быть датой до :date.'
+  before_or_equal: ':attribute должно быть датой до или равным :date.'
+  between:
+    array: 'Массив :attribute должен содержать от :min до :max элементов.'
+    file: 'Размер файла :attribute должен быть от :min до :max килобайт.'
+    numeric: 'Значение :attribute должно быть от :min до :max.'
+    string: 'Строка :attribute должна содержать от :min до :max символов.'
+  boolean: ':attribute должно быть истинным (true) или ложным (false).'
+  can: "Поле :attribute содержит несанкционированное значение."
+  confirmed: ':attribute не проходит проверку на совпадение.'
+  current_password: "Пароль неверен."
+  date: ':attribute не содержит корректную дату.'
+  date_equals: ':attribute должно быть равным :date.'
+  date_format: ':attribute не соответствует формату :format.'
+  decimal: "Поле :attribute должно содержать десятичные знаки :decimal."
+  declined: "Поле :attribute должно быть отклонено."
+  declined_if: "Поле :attribute должно быть отклонено, если :other равно :value."
+  different: ':attribute и :other должны отличаться.'
+  digits: ':attribute должно содержать значения :digits.'
+  digits_between: ':attribute должно содержать значения между :min и :max.'
+  dimensions: ':attribute содержит некорректные размеры изображения.'
+  distinct: ':attribute содержит дублирующее значение.'
+  doesnt_end_with: "Поле :attribute не должно заканчиваться одним из следующих символов: :values."
+  doesnt_start_with: "Поле :attribute не должно начинаться с одного из следующих значений: :values."
+  email: ':attribute должно содержать корректный email.'
+  ends_with: ':attribute должно заканчиваться одним из следующих значений: :values.'
+  enum: "Выбранный :attribute недействителен."
+  exists: 'Выбранное значение для :attribute некорректно.'
+  extensions: "Поле :attribute должно иметь одно из следующих расширений: :values."
+  file: ':attribute должно содержать файл.'
+  filled: ':attribute обязательно к заполнению.'
+  gt:
+    array: 'Массив :attribute должен содержать больше :value элементов.'
+    file: 'Размер файла :attribute должен быть больше :value килобайт.'
+    numeric: 'Значение :attribute должно быть больше :value.'
+    string: 'Строка :attribute должна содержать больше :value символов.'
+  gte:
+    array: 'Массив :attribute должен содержать не меньше :value элементов.'
+    file: 'Размер файла :attribute должен быть больше или равен :value килобайт.'
+    numeric: 'Значение :attribute должно быть больше или равное :value.'
+    string: 'Строка :attribute должна содержать больше или равна :value символам.'
+  hex_color: "Поле :attribute должно иметь допустимый шестнадцатеричный цвет."
+  image: ':attribute должно быть изображением.'
+  in: 'Выбранное значение для :attribute некорректно.'
+  in_array: 'Значение :attribute не существует в :other.'
+  integer: ':attribute должно быть целым числом.'
+  ip: ':attribute должно содержать корректный IP-адрес.'
+  ipv4: ':attribute должно содержать корректный IPv4-адрес.'
+  ipv6: ':attribute должно содержать корректный IPv6-адрес.'
+  json: ':attribute должно быть корректной строкой JSON.'
+  lowercase: "Поле :attribute должно быть написано строчными буквами."
+  lt:
+    array: 'Массив :attribute должен содержать меньше :value элементов.'
+    file: 'Размер файла :attribute должен быть меньше :value килобайт.'
+    numeric: 'Значение :attribute должно быть меньше :value.'
+    string: 'Строка :attribute должна содержать меньше :value символов.'
+  lte:
+    array: 'Массив :attribute должен содержать не больше :value элементов.'
+    file: 'Размер файла :attribute должен быть меньше или равен :value килобайт.'
+    numeric: 'Значение :attribute должно быть меньше или равное :value.'
+    string: 'Строка :attribute должна содержать меньше или равна :value символов.'
+  mac_address: "Поле :attribute должно содержать действительный MAC-адрес."
+  max:
+    array: 'Массив :attribute не может содержать больше :max элементов.'
+    file: 'Файл :attribute не может быть больше :max килобайт.'
+    numeric: 'Значение :attribute не может быть больше :max.'
+    string: 'Строка :attribute не может содержать больше :max символов.'
+  max_digits: "Поле :attribute не должно содержать более :max цифр."
+  mimes: ':attribute должно содержать файл следующих типов: :values.'
+  mimetypes: ':attribute должно содержать файл следующего типа: :values.'
+  min:
+    array: 'Массив :attribute не может содержать менее :min элементов.'
+    file: 'Файл :attribute не может быть меньше :min килобайт.'
+    numeric: 'Значение :attribute не может быть меньше :min.'
+    string: 'Строка :attribute не может содержать меньше :min символов.'
+  min_digits: "Поле :attribute должно содержать не менее :min цифр."
+  missing: "Поле :attribute должно отсутствовать."
+  missing_if: "Поле :attribute должно отсутствовать, если :other имеет значение :value."
+  missing_unless: "Поле :attribute должно отсутствовать, если :other не равно :value."
+  missing_with: "Поле :attribute должно отсутствовать, если присутствует :values."
+  missing_with_all: "Поле :attribute должно отсутствовать, если присутствуют :values."
+  multiple_of: 'Значение :attribute должно быть кратно :value.'
+  not_in: 'Выбранное значение для :attribute некорректно.'
+  not_regex: 'Формат :attribute некорректен.'
+  numeric: 'Значение :attribute должно быть числом.'
+  password:
+    letters: "Поле :attribute должно содержать хотя бы одну букву."
+    mixed: "Поле :attribute должно содержать хотя бы одну прописную и одну строчную букву."
+    numbers: "Поле :attribute должно содержать хотя бы одно число."
+    symbols: "Поле :attribute должно содержать хотя бы один символ."
+    uncompromised: "Данный :attribute появился в результате утечки данных. Пожалуйста, выберите другой :attribute."
+  present: ':attribute должно присутствовать.'
+  present_if: "Поле :attribute должно присутствовать, если :other равно :value."
+  present_unless: "Поле :attribute должно присутствовать, если :other не равно :value."
+  present_with: "Поле :attribute должно присутствовать, когда присутствует :values."
+  present_with_all: "Поле :attribute должно присутствовать при наличии :values."
+  prohibited: ':attribute запрещено.'
+  prohibited_if: ':attribute запрещено, когда :other имеет значение :value.'
+  prohibited_unless: ':attribute запрещено, если :other не имеет значение :values.'
+  prohibits: "Поле :attribute запрещает присутствие :other."
+  regex: ':attribute имеет некорректный формат.'
+  required: ':attribute обязательно к заполнению.'
+  required_array_keys: "Поле :attribute должно содержать записи для: :values."
+  required_if: ':attribute обязательно к заполнению, когда :other имеет значение :value.'
+  required_if_accepted: "Поле :attribute является обязательным, если принимается :other."
+  required_unless: ':attribute обязательно к заполнению, когда :other не имеет значения :values.'
+  required_with: ':attribute обязательно к заполнению, когда имеется одно из значений :values.'
+  required_with_all: ':attribute обязательно к заполнению, когда имеются значения :values.'
+  required_without: ':attribute обязательно к заполнению, когда отсутствуют значения :values.'
+  required_without_all: ':attribute обязательно к заполнению, когда отсутствуют все значения :values.'
+  same: 'Значения :attribute и :other должны совпадать.'
+  size:
+    array: 'Массив :attribute должен содержать :size элементов.'
+    file: 'Файл :attribute должен быть равным :size килобайт.'
+    numeric: 'Значение :attribute должно быть равным :size.'
+    string: 'Строка :attribute должна содержать :size символов.'
+  starts_with: ':attribute должен начинаться с одного из значений: :values.'
+  string: ':attribute должно быть строкой.'
+  timezone: ':attribute должно содержать корректный часовой пояс.'
+  unique: ':attribute уже имеет подобное значение.'
+  uploaded: ':attribute не удалось загрузить.'
+  uppercase: "Поле :attribute должно быть в верхнем регистре."
+  url: ':attribute имеет некорректный формат.'
+  ulid: "Поле :attribute должно быть действительным ULID."
+  uuid: ':attribute должно содержать корректный UUID.'
+  attributes:
+    username: 'имя пользователя'
+    password: пароль
+    email: электронная почта
+    title: название
+    content: содержимое
+    name_singular: 'единственное имя'
+    name_plural: 'множественное имя'
+    tag_count_primary: 'количество основных тегов'
+    tag_count_secondary: 'количество дополнительных тегов'

@@ -7,4 +7,19 @@
  * LICENSE file that was distributed with this source code.
  */
 
-return new Flarum\Extend\LanguagePack();
+use Flarum\Extend;
+use Vadkuz\RussianLangpack\Api\Controller\SyncStatusController;
+use Vadkuz\RussianLangpack\Api\Controller\SyncTickController;
+
+return [
+    new Extend\LanguagePack(),
+    new Extend\Locales(__DIR__.'/locale-core'),
+    new Extend\Locales(__DIR__.'/runtime-locale'),
+
+    (new Extend\Frontend('admin'))
+        ->js(__DIR__.'/js/dist/admin.js'),
+
+    (new Extend\Routes('api'))
+        ->get('/ru-langpack/sync/status', 'vadkuz.ru-langpack.sync.status', SyncStatusController::class)
+        ->post('/ru-langpack/sync/tick', 'vadkuz.ru-langpack.sync.tick', SyncTickController::class),
+];

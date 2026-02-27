@@ -1,0 +1,11 @@
+vadkuz-flarum2-russian-langpack:
+  admin:
+    sync:
+      panel_title: Автосинхронизация переводов
+      loading: Загрузка статуса синхронизации...
+      queue: В очереди
+      synced: Загружено
+      missing: Отсутствует на GitHub
+      last_action: Последнее действие
+      last_message: Сообщение
+      updated_at: Обновлено
