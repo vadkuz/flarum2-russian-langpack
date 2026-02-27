@@ -2,16 +2,24 @@
 
 namespace Vadkuz\RussianLangpack\Sync;
 
+use Illuminate\Contracts\Config\Repository as ConfigRepository;
 use Flarum\Settings\SettingsRepositoryInterface;
 
 class TranslationSyncManager
 {
     private const STATE_KEY = 'vadkuz.russian_langpack.sync_state';
     private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
+    private const REPORTING_ENABLED_KEY = 'vadkuz.russian_langpack.reporting_enabled';
+    private const REPORTING_WEBHOOK_URL_KEY = 'vadkuz.russian_langpack.reporting_webhook_url';
+    private const REPORTING_FORUM_ID_KEY = 'vadkuz.russian_langpack.reporting_forum_id';
+    private const REPORTING_INTERVAL_MINUTES_KEY = 'vadkuz.russian_langpack.reporting_interval_minutes';
+    private const REPORTING_TOKEN_KEY = 'vadkuz.russian_langpack.reporting_token';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
     private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
     private const MAX_REMOTE_BYTES = 524288;
     private const MAX_RETRIES = 3;
+    private const DEFAULT_REPORTING_INTERVAL_MINUTES = 60;
+    private const DEFAULT_REPORTING_WEBHOOK_URL = 'https://flarum.vadim.online/api/langpack/ingest';
 
     private const SELF_EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
     private string $packageRoot;
@@ -19,7 +27,10 @@ class TranslationSyncManager
     private string $coreLocaleDir;
     private string $runtimeLocaleDir;
 
-    public function __construct(private readonly SettingsRepositoryInterface $settings)
+    public function __construct(
+        private readonly SettingsRepositoryInterface $settings,
+        private readonly ConfigRepository $config
+    )
     {
         $this->packageRoot = dirname(__DIR__, 2);
         $this->catalogLocaleDir = $this->packageRoot.'/locale-catalog';
@@ -40,12 +51,14 @@ class TranslationSyncManager
                 $state['lastAction'] = 'disabled';
                 $state['lastMessage'] = 'Autosync is disabled in extension settings.';
                 $state['updatedAt'] = gmdate('c');
+                $state = $this->maybeSendReport($state, null, false, 'status_disabled');
                 $this->saveState($state);
 
                 return $this->buildResponse($state, null);
             }
 
             $state = $this->refreshQueue($state);
+            $state = $this->maybeSendReport($state, null, false, 'status');
             $this->saveState($state);
 
             return $this->buildResponse($state, null);
@@ -66,6 +79,7 @@ class TranslationSyncManager
                 $state['lastMessage'] = 'Autosync is disabled in extension settings.';
                 $state['lastRunAt'] = gmdate('c');
                 $state['updatedAt'] = gmdate('c');
+                $state = $this->maybeSendReport($state, null, false, 'tick_disabled');
                 $this->saveState($state);
 
                 return $this->buildResponse($state, null);
@@ -124,9 +138,26 @@ class TranslationSyncManager
             $now = gmdate('c');
             $state['lastRunAt'] = $now;
             $state['updatedAt'] = $now;
+            $state = $this->maybeSendReport($state, $processed, false, 'tick');
             $this->saveState($state);
 
             return $this->buildResponse($state, $processed);
+        });
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function reportInstallEvent(): array
+    {
+        return $this->withLock(function (): array {
+            $state = $this->loadState();
+            $state = $this->refreshQueue($state);
+            $state['updatedAt'] = gmdate('c');
+            $state = $this->maybeSendReport($state, null, true, 'extension_enabled');
+            $this->saveState($state);
+
+            return $this->buildResponse($state, null);
         });
     }
 
@@ -207,6 +238,10 @@ class TranslationSyncManager
             'lastRunAt' => null,
             'updatedAt' => null,
             'prunedRuntimeFiles' => 0,
+            'lastReportAt' => null,
+            'lastReportStatus' => null,
+            'lastReportHttpCode' => null,
+            'lastReportMessage' => null,
         ];
     }
 
@@ -388,6 +423,281 @@ class TranslationSyncManager
         return true;
     }
 
+    /**
+     * @param array<string, mixed> $state
+     * @param array<string, string>|null $processed
+     * @return array<string, mixed>
+     */
+    private function maybeSendReport(array $state, ?array $processed, bool $force, string $event): array
+    {
+        $reportingEnabled = $this->isReportingEnabled();
+        if (! $reportingEnabled) {
+            $state['lastReportStatus'] = 'disabled';
+            $state['lastReportMessage'] = 'Reporting is disabled.';
+
+            return $state;
+        }
+
+        $webhookUrl = $this->getReportingWebhookUrl();
+        if ($webhookUrl === '') {
+            $state['lastReportStatus'] = 'webhook_not_configured';
+            $state['lastReportMessage'] = 'Webhook URL is not configured.';
+
+            return $state;
+        }
+
+        if (! $force && ! $this->isReportDue($state)) {
+            $state['lastReportStatus'] = 'skipped';
+            $state['lastReportMessage'] = 'Report interval not reached.';
+
+            return $state;
+        }
+
+        $payload = $this->buildReportPayload($state, $processed, $event);
+        $result = $this->httpPostJson(
+            $webhookUrl,
+            $payload,
+            (string) ($this->settings->get(self::REPORTING_TOKEN_KEY) ?? '')
+        );
+
+        $state['lastReportAt'] = gmdate('c');
+        $state['lastReportHttpCode'] = $result['status'];
+
+        if ($result['status'] >= 200 && $result['status'] < 300) {
+            $state['lastReportStatus'] = 'sent';
+            $state['lastReportMessage'] = 'Report sent.';
+        } else {
+            $state['lastReportStatus'] = 'failed';
+            $state['lastReportMessage'] = $result['message'];
+        }
+
+        return $state;
+    }
+
+    /**
+     * @param array<string, mixed> $state
+     */
+    private function isReportDue(array $state): bool
+    {
+        $lastReportAt = $state['lastReportAt'] ?? null;
+        if (! is_string($lastReportAt) || trim($lastReportAt) === '') {
+            return true;
+        }
+
+        $lastTs = strtotime($lastReportAt);
+        if ($lastTs === false) {
+            return true;
+        }
+
+        $intervalSeconds = $this->getReportingIntervalMinutes() * 60;
+
+        return (time() - $lastTs) >= $intervalSeconds;
+    }
+
+    private function isReportingEnabled(): bool
+    {
+        $raw = $this->settings->get(self::REPORTING_ENABLED_KEY);
+
+        if ($raw === null) {
+            return true;
+        }
+
+        if ($raw === true || $raw === 1) {
+            return true;
+        }
+
+        if ($raw === false || $raw === 0) {
+            return false;
+        }
+
+        if (! is_string($raw)) {
+            return true;
+        }
+
+        $normalized = strtolower(trim($raw));
+
+        if ($normalized === '') {
+            return true;
+        }
+
+        if (in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true)) {
+            return true;
+        }
+
+        if (in_array($normalized, ['0', 'false', 'disabled', 'no', 'off'], true)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    private function getReportingWebhookUrl(): string
+    {
+        $raw = $this->settings->get(self::REPORTING_WEBHOOK_URL_KEY);
+        if (! is_string($raw) || trim($raw) === '') {
+            return self::DEFAULT_REPORTING_WEBHOOK_URL;
+        }
+
+        return trim($raw);
+    }
+
+    private function getReportingIntervalMinutes(): int
+    {
+        $raw = $this->settings->get(self::REPORTING_INTERVAL_MINUTES_KEY);
+        $minutes = (int) $raw;
+
+        if ($minutes <= 0) {
+            return self::DEFAULT_REPORTING_INTERVAL_MINUTES;
+        }
+
+        return min(10080, max(5, $minutes));
+    }
+
+    /**
+     * @param array<string, mixed> $state
+     * @param array<string, string>|null $processed
+     * @return array<string, mixed>
+     */
+    private function buildReportPayload(array $state, ?array $processed, string $event): array
+    {
+        $forumUrl = trim((string) $this->config->get('url', ''));
+        $forumHost = $forumUrl !== '' ? (string) (parse_url($forumUrl, PHP_URL_HOST) ?? '') : '';
+        $forumId = trim((string) ($this->settings->get(self::REPORTING_FORUM_ID_KEY) ?? ''));
+
+        $pending = $this->normalizeStringList($state['pending'] ?? []);
+        $synced = $this->normalizeStringList($state['synced'] ?? []);
+        $missing = $this->normalizeStringList($state['missing'] ?? []);
+        $failed = $this->normalizeIntMap($state['failed'] ?? []);
+        $enabled = $this->getEnabledExtensionIds();
+        sort($enabled);
+
+        return [
+            'event' => $event,
+            'sentAt' => gmdate('c'),
+            'forum' => [
+                'id' => $forumId !== '' ? $forumId : null,
+                'url' => $forumUrl !== '' ? $forumUrl : null,
+                'host' => $forumHost !== '' ? $forumHost : null,
+                'urlHash' => $forumUrl !== '' ? sha1($forumUrl) : null,
+            ],
+            'langpack' => [
+                'package' => 'vadkuz/flarum2-russian-langpack',
+                'version' => $this->getInstalledPackageVersion('vadkuz/flarum2-russian-langpack'),
+                'autosyncEnabled' => $this->isAutosyncEnabled(),
+                'reportingEnabled' => $this->isReportingEnabled(),
+                'reportingIntervalMinutes' => $this->getReportingIntervalMinutes(),
+            ],
+            'runtime' => [
+                'phpVersion' => PHP_VERSION,
+                'flarumVersion' => $this->getInstalledPackageVersion('flarum/core'),
+                'timestamp' => time(),
+            ],
+            'extensions' => [
+                'enabledCount' => count($enabled),
+                'enabled' => $enabled,
+                'pendingCount' => count($pending),
+                'pending' => $pending,
+                'syncedCount' => count($synced),
+                'synced' => $synced,
+                'missingCount' => count($missing),
+                'missing' => $missing,
+                'failedCount' => array_sum($failed),
+            ],
+            'sync' => [
+                'lastAction' => (string) ($state['lastAction'] ?? 'idle'),
+                'lastMessage' => (string) ($state['lastMessage'] ?? ''),
+                'updatedAt' => is_string($state['updatedAt'] ?? null) ? $state['updatedAt'] : null,
+                'processed' => $processed,
+            ],
+        ];
+    }
+
+    private function getInstalledPackageVersion(string $packageName): ?string
+    {
+        if (! class_exists(\Composer\InstalledVersions::class)) {
+            return null;
+        }
+
+        try {
+            if (! \Composer\InstalledVersions::isInstalled($packageName)) {
+                return null;
+            }
+
+            return (string) (\Composer\InstalledVersions::getPrettyVersion($packageName) ?? '');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     * @return array{status: int, message: string}
+     */
+    private function httpPostJson(string $url, array $payload, string $token): array
+    {
+        if (! function_exists('curl_init')) {
+            return ['status' => 500, 'message' => 'cURL extension is not available.'];
+        }
+
+        $body = json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        if (! is_string($body) || $body === '') {
+            return ['status' => 500, 'message' => 'Could not encode report payload.'];
+        }
+
+        $ch = curl_init($url);
+        if ($ch === false) {
+            return ['status' => 500, 'message' => 'Could not initialize cURL.'];
+        }
+
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'User-Agent: Flarum2-Russian-Langpack-Report',
+        ];
+
+        $trimmedToken = trim($token);
+        if ($trimmedToken !== '') {
+            $headers[] = 'X-Langpack-Token: '.$trimmedToken;
+        }
+
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+
+        $response = curl_exec($ch);
+        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+        $errno = curl_errno($ch);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($errno !== 0) {
+            return [
+                'status' => 500,
+                'message' => 'Webhook request failed: '.($error !== '' ? $error : (string) $errno),
+            ];
+        }
+
+        if ($status < 200 || $status >= 300) {
+            $responseBody = is_string($response) ? trim($response) : '';
+            if ($responseBody !== '' && strlen($responseBody) > 120) {
+                $responseBody = substr($responseBody, 0, 120).'...';
+            }
+
+            return [
+                'status' => $status > 0 ? $status : 500,
+                'message' => 'Webhook responded with status '.($status > 0 ? $status : 500).($responseBody !== '' ? ': '.$responseBody : '.'),
+            ];
+        }
+
+        return ['status' => $status, 'message' => 'OK'];
+    }
+
     private function normalizeExtensionId(string $value): string
     {
         $normalized = strtolower(trim($value));
@@ -549,6 +859,8 @@ class TranslationSyncManager
             'ok' => true,
             'busy' => false,
             'autosyncEnabled' => $this->isAutosyncEnabled(),
+            'reportingEnabled' => $this->isReportingEnabled(),
+            'reportingWebhookConfigured' => $this->getReportingWebhookUrl() !== '',
             'pendingCount' => count($pending),
             'syncedCount' => count($synced),
             'missingCount' => count($missing),
@@ -559,6 +871,10 @@ class TranslationSyncManager
             'lastRunAt' => is_string($state['lastRunAt'] ?? null) ? $state['lastRunAt'] : null,
             'updatedAt' => is_string($state['updatedAt'] ?? null) ? $state['updatedAt'] : null,
             'prunedRuntimeFiles' => (int) ($state['prunedRuntimeFiles'] ?? 0),
+            'lastReportAt' => is_string($state['lastReportAt'] ?? null) ? $state['lastReportAt'] : null,
+            'lastReportStatus' => is_string($state['lastReportStatus'] ?? null) ? $state['lastReportStatus'] : null,
+            'lastReportHttpCode' => (int) ($state['lastReportHttpCode'] ?? 0),
+            'lastReportMessage' => is_string($state['lastReportMessage'] ?? null) ? $state['lastReportMessage'] : null,
             'processed' => $processed,
         ];
     }

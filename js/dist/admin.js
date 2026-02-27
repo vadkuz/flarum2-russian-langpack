@@ -10,6 +10,11 @@
 
   var EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
   var AUTOSYNC_SETTING_KEY = 'vadkuz.russian_langpack.autosync_enabled';
+  var REPORTING_ENABLED_SETTING_KEY = 'vadkuz.russian_langpack.reporting_enabled';
+  var REPORTING_WEBHOOK_URL_SETTING_KEY = 'vadkuz.russian_langpack.reporting_webhook_url';
+  var REPORTING_FORUM_ID_SETTING_KEY = 'vadkuz.russian_langpack.reporting_forum_id';
+  var REPORTING_INTERVAL_SETTING_KEY = 'vadkuz.russian_langpack.reporting_interval_minutes';
+  var REPORTING_TOKEN_SETTING_KEY = 'vadkuz.russian_langpack.reporting_token';
   var PANEL_ID = 'vadkuz-ru-sync-panel';
   var PANEL_STYLE_ID = 'vadkuz-ru-sync-panel-style';
   var TICK_INTERVAL_MS = 12000;
@@ -68,6 +73,74 @@
       help: trans(
         'vadkuz-flarum2-russian-langpack.admin.settings.autosync_help',
         'Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается.'
+      ),
+    });
+
+    registry.registerSetting({
+      setting: REPORTING_ENABLED_SETTING_KEY,
+      type: 'boolean',
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_enabled_label',
+        'Включить webhook-отчёты'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_enabled_help',
+        'Отправлять информацию о статусе переводов и списке установленных расширений на webhook.'
+      ),
+    });
+
+    registry.registerSetting({
+      setting: REPORTING_WEBHOOK_URL_SETTING_KEY,
+      type: 'string',
+      placeholder: 'https://flarum.vadim.online/api/langpack/ingest',
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_webhook_url_label',
+        'Webhook URL'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_webhook_url_help',
+        'Куда отправлять JSON-отчёты. Отправка идет даже при missing=0.'
+      ),
+    });
+
+    registry.registerSetting({
+      setting: REPORTING_FORUM_ID_SETTING_KEY,
+      type: 'string',
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_forum_id_label',
+        'Forum ID (опционально)'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_forum_id_help',
+        'Ваш внутренний идентификатор форума для удобной агрегации.'
+      ),
+    });
+
+    registry.registerSetting({
+      setting: REPORTING_INTERVAL_SETTING_KEY,
+      type: 'number',
+      min: 5,
+      placeholder: 60,
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_interval_label',
+        'Интервал отчётов (минуты)'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_interval_help',
+        'Минимум 5 минут. По умолчанию 60.'
+      ),
+    });
+
+    registry.registerSetting({
+      setting: REPORTING_TOKEN_SETTING_KEY,
+      type: 'string',
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_token_label',
+        'Webhook token (опционально)'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_token_help',
+        'Будет отправлен в заголовке X-Langpack-Token.'
       ),
     });
 
@@ -226,6 +299,22 @@
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.autosync_disabled',
         'Автосинхронизация отключена в настройках расширения.',
       ],
+      'Reporting is disabled.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_disabled',
+        'Webhook-отчёты отключены.',
+      ],
+      'Webhook URL is not configured.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_missing',
+        'Webhook URL не настроен.',
+      ],
+      'Report interval not reached.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_interval_skip',
+        'Интервал отправки отчёта ещё не наступил.',
+      ],
+      'Report sent.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_sent',
+        'Webhook-отчёт отправлен.',
+      ],
     };
 
     if (Object.prototype.hasOwnProperty.call(map, text)) {
@@ -242,7 +331,47 @@
       );
     }
 
+    var webhookStatus = text.match(/^Webhook responded with status (\d+)(:?)(.*)$/i);
+    if (webhookStatus) {
+      return trans(
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_status',
+        'Webhook вернул код {status}.',
+        { status: webhookStatus[1] }
+      );
+    }
+
+    var webhookFailed = text.match(/^Webhook request failed:/i);
+    if (webhookFailed) {
+      return trans(
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_failed',
+        'Ошибка запроса к webhook.'
+      );
+    }
+
     return text;
+  }
+
+  function localizeReportStatus(status) {
+    var code = String(status || '').trim().toLowerCase();
+    if (!code) return '';
+
+    var map = {
+      sent: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.sent', 'Отправлено'],
+      failed: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.failed', 'Ошибка'],
+      skipped: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.skipped', 'Пропущено'],
+      disabled: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.disabled', 'Отключено'],
+      webhook_not_configured: [
+        'vadkuz-flarum2-russian-langpack.admin.sync.report_status.webhook_not_configured',
+        'Webhook не настроен',
+      ],
+    };
+
+    if (Object.prototype.hasOwnProperty.call(map, code)) {
+      var item = map[code];
+      return trans(item[0], item[1]);
+    }
+
+    return code;
   }
 
   function asCount(value) {
@@ -436,6 +565,33 @@
         data.updatedAt;
       panel.appendChild(updatedAt);
     }
+
+    if (data.lastReportStatus || data.lastReportAt) {
+      var report = document.createElement('div');
+      report.style.fontSize = '12px';
+      report.style.color = '#666';
+      report.style.marginTop = '6px';
+
+      var reportText =
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_report', 'Webhook отчет') +
+        ': ' +
+        localizeReportStatus(data.lastReportStatus || '');
+
+      if (data.lastReportHttpCode) {
+        reportText += ' (HTTP ' + data.lastReportHttpCode + ')';
+      }
+
+      if (data.lastReportAt) {
+        reportText += ', ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.updated_at', 'Updated at') + ': ' + data.lastReportAt;
+      }
+
+      if (data.lastReportMessage) {
+        reportText += '. ' + data.lastReportMessage;
+      }
+
+      report.textContent = reportText;
+      panel.appendChild(report);
+    }
   }
 
   function renderStatus() {
@@ -543,19 +699,7 @@
     }
 
     if (!state.data) {
-      runStatus().then(function () {
-        if (!state.data || state.data.autosyncEnabled === false) {
-          renderStatus();
-          return;
-        }
-
-        runTick();
-      });
-      return;
-    }
-
-    if (state.data.autosyncEnabled === false) {
-      renderStatus();
+      runStatus().then(runTick);
       return;
     }
 

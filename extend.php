@@ -10,10 +10,12 @@
 use Flarum\Extend;
 use Vadkuz\RussianLangpack\Api\Controller\SyncStatusController;
 use Vadkuz\RussianLangpack\Api\Controller\SyncTickController;
+use Vadkuz\RussianLangpack\Extend\LifecycleHooks;
 
 return [
     new Extend\LanguagePack('/locale-core'),
     new Extend\Locales(__DIR__.'/runtime-locale'),
+    new LifecycleHooks(),
 
     (new Extend\Frontend('admin'))
         ->js(__DIR__.'/js/dist/admin.js'),

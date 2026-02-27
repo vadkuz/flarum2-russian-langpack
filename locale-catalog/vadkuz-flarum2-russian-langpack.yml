@@ -3,6 +3,16 @@ vadkuz-flarum2-russian-langpack:
     settings:
       autosync_label: Включить автосинхронизацию переводов
       autosync_help: "Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается."
+      reporting_enabled_label: Включить webhook-отчёты
+      reporting_enabled_help: "Отправлять информацию о статусе переводов и списке установленных расширений на webhook."
+      reporting_webhook_url_label: Webhook URL
+      reporting_webhook_url_help: "Куда отправлять JSON-отчёты. Отправка идет даже при missing=0."
+      reporting_forum_id_label: "Forum ID (опционально)"
+      reporting_forum_id_help: "Ваш внутренний идентификатор форума для удобной агрегации."
+      reporting_interval_label: "Интервал отчётов (минуты)"
+      reporting_interval_help: "Минимум 5 минут. По умолчанию 60."
+      reporting_token_label: "Webhook token (опционально)"
+      reporting_token_help: "Будет отправлен в заголовке X-Langpack-Token."
     sync:
       panel_title: Автосинхронизация переводов
       loading: Загрузка статуса синхронизации...
@@ -20,6 +30,13 @@ vadkuz-flarum2-russian-langpack:
       last_action: Последнее действие
       last_message: Сообщение
       updated_at: Обновлено
+      last_report: Webhook отчёт
+      report_status:
+        sent: Отправлено
+        failed: Ошибка
+        skipped: Пропущено
+        disabled: Отключено
+        webhook_not_configured: Webhook не настроен
       msg:
         no_pending: Нет ожидающих переводов.
         local_catalog: Перевод взят из локального каталога.
@@ -32,4 +49,10 @@ vadkuz-flarum2-russian-langpack:
         sync_running: Синхронизация уже выполняется.
         lock_open_failed: Не удалось открыть lock-файл синхронизации.
         autosync_disabled: Автосинхронизация отключена в настройках расширения.
+        reporting_disabled: Webhook-отчёты отключены.
+        reporting_webhook_missing: Webhook URL не настроен.
+        reporting_interval_skip: Интервал отправки отчёта ещё не наступил.
+        reporting_sent: Webhook-отчёт отправлен.
+        reporting_webhook_status: "Webhook вернул код {status}."
+        reporting_webhook_failed: Ошибка запроса к webhook.
         github_status: "Запрос к GitHub завершился с кодом {status}."
