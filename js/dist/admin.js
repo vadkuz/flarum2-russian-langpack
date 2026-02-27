@@ -278,29 +278,6 @@
     return text;
   }
 
-  function localizeReportStatus(status) {
-    var code = String(status || '').trim().toLowerCase();
-    if (!code) return '';
-
-    var map = {
-      sent: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.sent', 'Отправлено'],
-      failed: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.failed', 'Ошибка'],
-      skipped: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.skipped', 'Пропущено'],
-      disabled: ['vadkuz-flarum2-russian-langpack.admin.sync.report_status.disabled', 'Отключено'],
-      webhook_not_configured: [
-        'vadkuz-flarum2-russian-langpack.admin.sync.report_status.webhook_not_configured',
-        'Webhook не настроен',
-      ],
-    };
-
-    if (Object.prototype.hasOwnProperty.call(map, code)) {
-      var item = map[code];
-      return trans(item[0], item[1]);
-    }
-
-    return code;
-  }
-
   function asCount(value) {
     var n = Number(value);
     if (!isFinite(n) || n < 0) return 0;
@@ -493,32 +470,6 @@
       panel.appendChild(updatedAt);
     }
 
-    if (data.lastReportStatus || data.lastReportAt) {
-      var report = document.createElement('div');
-      report.style.fontSize = '12px';
-      report.style.color = '#666';
-      report.style.marginTop = '6px';
-
-      var reportText =
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_report', 'Webhook отчет') +
-        ': ' +
-        localizeReportStatus(data.lastReportStatus || '');
-
-      if (data.lastReportHttpCode) {
-        reportText += ' (HTTP ' + data.lastReportHttpCode + ')';
-      }
-
-      if (data.lastReportAt) {
-        reportText += ', ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.updated_at', 'Updated at') + ': ' + data.lastReportAt;
-      }
-
-      if (data.lastReportMessage) {
-        reportText += '. ' + data.lastReportMessage;
-      }
-
-      report.textContent = reportText;
-      panel.appendChild(report);
-    }
   }
 
   function renderStatus() {
