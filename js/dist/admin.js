@@ -80,9 +80,8 @@
   }
 
   function hideDefaultNoSettingsMessage(host) {
-    if (!host) return;
-
-    var headings = host.querySelectorAll('h3');
+    var root = host || document;
+    var headings = root.querySelectorAll('.ExtensionPage-settings h3, .ExtensionPage-body h3');
     if (!headings || !headings.length) return;
 
     for (var i = 0; i < headings.length; i++) {
@@ -91,6 +90,7 @@
 
       if (
         text === 'расширение не имеет настроек.' ||
+        text === 'расширение не имеет настроек' ||
         text === 'this extension has no settings.' ||
         text === 'this extension has no settings'
       ) {
@@ -432,6 +432,8 @@
       removePanel();
       return;
     }
+
+    hideDefaultNoSettingsMessage();
 
     if (state.error) {
       setPanelText(state.error, true);
