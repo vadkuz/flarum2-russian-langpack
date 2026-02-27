@@ -113,43 +113,43 @@
     var map = {
       'No pending translations.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.no_pending',
-        'No pending translations.',
+        'Нет ожидающих переводов.',
       ],
       'Translation copied from local catalog.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog',
-        'Translation copied from local catalog.',
+        'Перевод взят из локального каталога.',
       ],
       'Translation downloaded from GitHub.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_downloaded',
-        'Translation downloaded from GitHub.',
+        'Перевод загружен с GitHub.',
       ],
       'Translation not found on GitHub.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_not_found',
-        'Translation not found on GitHub.',
+        'Перевод не найден на GitHub.',
       ],
       'Queue refreshed from enabled extensions.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.queue_refreshed',
-        'Queue refreshed from enabled extensions.',
+        'Очередь обновлена по списку включённых расширений.',
       ],
       'Invalid extension id.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_extension',
-        'Invalid extension id.',
+        'Некорректный идентификатор расширения.',
       ],
       'Downloaded file is empty or invalid.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_file',
-        'Downloaded file is empty or invalid.',
+        'Загруженный файл пустой или некорректный.',
       ],
       'Could not write runtime locale file.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.write_failed',
-        'Could not write runtime locale file.',
+        'Не удалось записать runtime-файл перевода.',
       ],
       'Sync is already running.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.sync_running',
-        'Sync is already running.',
+        'Синхронизация уже выполняется.',
       ],
       'Could not open sync lock file.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.lock_open_failed',
-        'Could not open sync lock file.',
+        'Не удалось открыть lock-файл синхронизации.',
       ],
     };
 
@@ -162,7 +162,7 @@
     if (githubStatus) {
       return trans(
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_status',
-        'GitHub request failed with status {status}.',
+        'Запрос к GitHub завершился с кодом {status}.',
         { status: githubStatus[1] }
       );
     }
