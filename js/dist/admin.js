@@ -137,6 +137,9 @@
       '  background-size: 100% 100%, 36px 36px;',
       '  animation: vadkuzRuSyncStripes 1s linear infinite;',
       '}',
+      '.ExtensionPage.vadkuz-flarum2-russian-langpack-Page .ExtensionPage-settings > h3:first-child {',
+      '  display: none !important;',
+      '}',
     ].join('\n');
 
     document.head.appendChild(style);
