@@ -9,9 +9,11 @@
   var booted = false;
 
   var EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
+  var AUTOSYNC_SETTING_KEY = 'vadkuz.russian_langpack.autosync_enabled';
   var PANEL_ID = 'vadkuz-ru-sync-panel';
   var PANEL_STYLE_ID = 'vadkuz-ru-sync-panel-style';
   var TICK_INTERVAL_MS = 12000;
+  var settingsRegistered = false;
 
   var state = {
     inFlight: false,
@@ -49,6 +51,29 @@
     return fallback;
   }
 
+  function registerExtensionSettings() {
+    if (settingsRegistered) return;
+    if (!app || !app.registry || typeof app.registry.for !== 'function') return;
+
+    var registry = app.registry.for(EXTENSION_ID);
+    if (!registry || typeof registry.registerSetting !== 'function') return;
+
+    registry.registerSetting({
+      setting: AUTOSYNC_SETTING_KEY,
+      type: 'boolean',
+      label: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.autosync_label',
+        'Enable automatic translation sync'
+      ),
+      help: trans(
+        'vadkuz-flarum2-russian-langpack.admin.settings.autosync_help',
+        'When disabled, runtime translation sync from local catalog/GitHub is paused.'
+      ),
+    });
+
+    settingsRegistered = true;
+  }
+
   function getPanelHost() {
     return (
       document.querySelector('.ExtensionPage-settings') ||
@@ -65,7 +90,6 @@
 
     var host = getPanelHost();
     if (!host) return null;
-    hideDefaultNoSettingsMessage(host);
 
     panel = document.createElement('div');
     panel.id = PANEL_ID;
@@ -77,26 +101,6 @@
 
     host.appendChild(panel);
     return panel;
-  }
-
-  function hideDefaultNoSettingsMessage(host) {
-    var root = host || document;
-    var headings = root.querySelectorAll('.ExtensionPage-settings h3, .ExtensionPage-body h3');
-    if (!headings || !headings.length) return;
-
-    for (var i = 0; i < headings.length; i++) {
-      var heading = headings[i];
-      var text = String(heading.textContent || '').trim().toLowerCase();
-
-      if (
-        text === 'расширение не имеет настроек.' ||
-        text === 'расширение не имеет настроек' ||
-        text === 'this extension has no settings.' ||
-        text === 'this extension has no settings'
-      ) {
-        heading.style.display = 'none';
-      }
-    }
   }
 
   function ensurePanelStyles() {
@@ -136,9 +140,6 @@
       '    repeating-linear-gradient(45deg, rgba(255,255,255,0.34) 0px, rgba(255,255,255,0.34) 10px, rgba(255,255,255,0.12) 10px, rgba(255,255,255,0.12) 20px);',
       '  background-size: 100% 100%, 36px 36px;',
       '  animation: vadkuzRuSyncStripes 1s linear infinite;',
-      '}',
-      '.ExtensionPage.vadkuz-flarum2-russian-langpack-Page .ExtensionPage-settings > h3:first-child {',
-      '  display: none !important;',
       '}',
     ].join('\n');
 
@@ -221,6 +222,10 @@
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.lock_open_failed',
         'Не удалось открыть lock-файл синхронизации.',
       ],
+      'Autosync is disabled in extension settings.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.autosync_disabled',
+        'Автосинхронизация отключена в настройках расширения.',
+      ],
     };
 
     if (Object.prototype.hasOwnProperty.call(map, text)) {
@@ -282,6 +287,7 @@
     var missing = asCount(data.missingCount);
     var failed = asCount(data.failedCount);
 
+    var autosyncEnabled = data.autosyncEnabled !== false;
     var done = synced + missing;
     var total = done + pending;
     var percent = total > 0 ? Math.round((done * 100) / total) : 100;
@@ -297,7 +303,7 @@
     title.style.marginBottom = '10px';
     panel.appendChild(title);
 
-    var isActive = pending > 0;
+    var isActive = autosyncEnabled && pending > 0;
 
     var status = document.createElement('div');
     status.className = 'vadkuz-ru-sync-status';
@@ -310,10 +316,12 @@
     status.appendChild(statusDot);
 
     var statusLabel = document.createElement('span');
-    statusLabel.textContent = isActive
+    statusLabel.textContent = !autosyncEnabled
+      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.disabled', 'Autosync disabled')
+      : isActive
       ? trans('vadkuz-flarum2-russian-langpack.admin.sync.syncing', 'Syncing...')
       : trans('vadkuz-flarum2-russian-langpack.admin.sync.idle', 'Waiting');
-    statusLabel.style.color = isActive ? '#1f6feb' : '#666';
+    statusLabel.style.color = !autosyncEnabled ? '#8a6d3b' : isActive ? '#1f6feb' : '#666';
     status.appendChild(statusLabel);
 
     panel.appendChild(status);
@@ -329,7 +337,7 @@
     progressBar.className = 'vadkuz-ru-sync-bar' + (isActive ? ' is-active' : '');
     progressBar.style.height = '100%';
     progressBar.style.width = percent + '%';
-    progressBar.style.backgroundColor = pending > 0 ? '#1f8b4c' : '#2d7a2d';
+    progressBar.style.backgroundColor = !autosyncEnabled ? '#9e9e9e' : pending > 0 ? '#1f8b4c' : '#2d7a2d';
     progressBar.style.transition = 'width 250ms ease';
     progressWrap.appendChild(progressBar);
     panel.appendChild(progressWrap);
@@ -436,8 +444,6 @@
       return;
     }
 
-    hideDefaultNoSettingsMessage();
-
     if (state.error) {
       setPanelText(state.error, true);
       return;
@@ -537,7 +543,19 @@
     }
 
     if (!state.data) {
-      runStatus().then(runTick);
+      runStatus().then(function () {
+        if (!state.data || state.data.autosyncEnabled === false) {
+          renderStatus();
+          return;
+        }
+
+        runTick();
+      });
+      return;
+    }
+
+    if (state.data.autosyncEnabled === false) {
+      renderStatus();
       return;
     }
 
@@ -547,9 +565,11 @@
   function boot() {
     if (booted || !app) return;
     booted = true;
+    registerExtensionSettings();
 
     window.addEventListener('hashchange', function () {
       state.lastRequestAt = 0;
+      registerExtensionSettings();
       runLoop();
     });
 

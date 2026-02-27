@@ -7,6 +7,7 @@ use Flarum\Settings\SettingsRepositoryInterface;
 class TranslationSyncManager
 {
     private const STATE_KEY = 'vadkuz.russian_langpack.sync_state';
+    private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
     private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
     private const MAX_REMOTE_BYTES = 524288;
@@ -33,6 +34,17 @@ class TranslationSyncManager
     {
         return $this->withLock(function (): array {
             $state = $this->loadState();
+
+            if (! $this->isAutosyncEnabled()) {
+                $state['pending'] = [];
+                $state['lastAction'] = 'disabled';
+                $state['lastMessage'] = 'Autosync is disabled in extension settings.';
+                $state['updatedAt'] = gmdate('c');
+                $this->saveState($state);
+
+                return $this->buildResponse($state, null);
+            }
+
             $state = $this->refreshQueue($state);
             $this->saveState($state);
 
@@ -47,6 +59,18 @@ class TranslationSyncManager
     {
         return $this->withLock(function (): array {
             $state = $this->loadState();
+
+            if (! $this->isAutosyncEnabled()) {
+                $state['pending'] = [];
+                $state['lastAction'] = 'disabled';
+                $state['lastMessage'] = 'Autosync is disabled in extension settings.';
+                $state['lastRunAt'] = gmdate('c');
+                $state['updatedAt'] = gmdate('c');
+                $this->saveState($state);
+
+                return $this->buildResponse($state, null);
+            }
+
             $state = $this->refreshQueue($state);
 
             $processed = null;
@@ -328,6 +352,42 @@ class TranslationSyncManager
         return in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true);
     }
 
+    private function isAutosyncEnabled(): bool
+    {
+        $raw = $this->settings->get(self::AUTOSYNC_ENABLED_KEY);
+
+        if ($raw === null) {
+            return true;
+        }
+
+        if ($raw === true || $raw === 1) {
+            return true;
+        }
+
+        if ($raw === false || $raw === 0) {
+            return false;
+        }
+
+        if (! is_string($raw)) {
+            return true;
+        }
+
+        $normalized = strtolower(trim($raw));
+        if ($normalized === '') {
+            return true;
+        }
+
+        if (in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true)) {
+            return true;
+        }
+
+        if (in_array($normalized, ['0', 'false', 'disabled', 'no', 'off'], true)) {
+            return false;
+        }
+
+        return true;
+    }
+
     private function normalizeExtensionId(string $value): string
     {
         $normalized = strtolower(trim($value));
@@ -488,6 +548,7 @@ class TranslationSyncManager
         return [
             'ok' => true,
             'busy' => false,
+            'autosyncEnabled' => $this->isAutosyncEnabled(),
             'pendingCount' => count($pending),
             'syncedCount' => count($synced),
             'missingCount' => count($missing),

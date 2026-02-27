@@ -1,5 +1,8 @@
 vadkuz-flarum2-russian-langpack:
   admin:
+    settings:
+      autosync_label: Включить автосинхронизацию переводов
+      autosync_help: "Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается."
     sync:
       panel_title: Автосинхронизация переводов
       loading: Загрузка статуса синхронизации...
@@ -9,6 +12,7 @@ vadkuz-flarum2-russian-langpack:
       failed: Ошибок
       progress: Прогресс
       remaining: Осталось
+      disabled: Автосинхронизация выключена
       syncing: Синхронизация...
       idle: Ожидание
       current_extension: Последний обработанный пакет
@@ -27,4 +31,5 @@ vadkuz-flarum2-russian-langpack:
         write_failed: Не удалось записать runtime-файл перевода.
         sync_running: Синхронизация уже выполняется.
         lock_open_failed: Не удалось открыть lock-файл синхронизации.
+        autosync_disabled: Автосинхронизация отключена в настройках расширения.
         github_status: "Запрос к GitHub завершился с кодом {status}."
