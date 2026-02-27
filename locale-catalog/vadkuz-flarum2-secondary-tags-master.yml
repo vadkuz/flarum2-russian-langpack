@@ -1,0 +1,7 @@
+vadkuz-flarum2-secondary-tags-master:
+  admin:
+    edit_tag:
+      allowed_primary_label: Разрешенные Primary-теги
+      allowed_primary_help: "Если ничего не выбрано, этот Secondary-тег сквозной (можно использовать с любым Primary-тегом)."
+      secondary_listed_label: Показывать в списках тегов и делать ссылкой
+      secondary_listed_help: "Если отключить, этот Secondary-тег будет скрыт на странице /tags и в боковом меню, а также перестанет быть кликабельной ссылкой там, где отображается."

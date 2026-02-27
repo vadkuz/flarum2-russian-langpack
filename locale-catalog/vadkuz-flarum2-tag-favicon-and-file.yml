@@ -1,0 +1,20 @@
+vadkuz-flarum2-tag-favicon-and-file:
+  admin:
+    edit_tag:
+      # Shown under the "Icon" field in the tag modal.
+      # Link placeholders: <fa>, <remix>, <mdi>, <bi>, <iconify>
+      icon_help: 'В поле «Иконка» можно использовать: <fa>Font Awesome</fa> (`fas fa-bolt`), <remix>Remix Icon</remix> (`ri-*`), <mdi>Material Design Icons</mdi> (`mdi mdi-*`), <bi>Bootstrap Icons</bi> (`bi bi-*`) и <iconify>Iconify</iconify> (`iconify:mdi:home`). Библиотеки подгружаются только при необходимости.'
+      # Backward-compatible key (was shown above the favicon section in older versions).
+      icon_libraries_help: 'В поле «Иконка» можно использовать: <fa>Font Awesome</fa> (`fas fa-bolt`), <remix>Remix Icon</remix> (`ri-*`), <mdi>Material Design Icons</mdi> (`mdi mdi-*`), <bi>Bootstrap Icons</bi> (`bi bi-*`) и <iconify>Iconify</iconify> (`iconify:mdi:home`). Библиотеки подгружаются только при необходимости.'
+      favicon_label: Favicon (URL или домен)
+      favicon_help: 'Можно указать прямую ссылку на изображение (.ico/.png/.svg/.webp/.jpg и т.д.) или домен/URL сайта (например, flarum.org или https://flarum.org). Внешние favicon кэшируются и оптимизируются через сервер.'
+      favicon_placeholder: 'flarum.org или https://example.com/favicon.png'
+      upload_label: Загрузить файл иконки
+      upload_help: 'Поддерживаются .ico, .png, .svg, .jpg, .jpeg, .webp, .avif, .gif, .bmp (до 2 МБ). Растровые файлы автоматически оптимизируются на сервере (ресайз + сжатие), а размер иконки в интерфейсе остаётся стандартным.'
+      uploading: Загрузка файла...
+      upload_error_default: Не удалось загрузить файл. Проверьте формат и попробуйте снова.
+      refresh_button: Обновить кэш favicon
+      refreshing: Обновление кэша...
+      refresh_success: Кэш favicon обновлён.
+      refresh_invalid_input: Для обновления кэша укажите внешний URL изображения или домен сайта.
+      refresh_error_default: Не удалось обновить кэш favicon.

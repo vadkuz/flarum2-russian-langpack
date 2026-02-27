@@ -1,0 +1,38 @@
+fof-oauth:
+  admin:
+    settings:
+      providers:
+        vk:
+          description: Создайте VK-приложение по ссылке {link}. Добавьте Redirect URL.
+          client_id_label: => fof-oauth.ref.settings.client_id
+          client_secret_label: => fof-oauth.ref.settings.client_secret
+          api_version_label: Версия VK API (необязательно)
+
+        yandex:
+          description: Создайте OAuth-приложение Яндекса по ссылке {link}. Добавьте Redirect URL.
+          client_id_label: => fof-oauth.ref.settings.client_id
+          client_secret_label: => fof-oauth.ref.settings.client_secret
+
+        telegram:
+          description: Создайте Telegram-бота по ссылке {link}. Настройте webhook и укажите username/token ниже.
+          bot_token_label: Токен бота
+          bot_username_label: Username бота
+          webhook_secret_label: Secret token для webhook (необязательно)
+
+  forum:
+    log_in:
+      with_vk_button: '=> fof-oauth.forum.log_in.with_button'
+      with_yandex_button: '=> fof-oauth.forum.log_in.with_button'
+      with_telegram_button: '=> fof-oauth.forum.log_in.with_button'
+
+    providers:
+      vk: '=> fof-oauth.lib.providers.vk'
+      yandex: '=> fof-oauth.lib.providers.yandex'
+      telegram: '=> fof-oauth.lib.providers.telegram'
+
+  lib:
+    providers:
+      vk: VK
+      yandex: Яндекс
+      telegram: Telegram
+
