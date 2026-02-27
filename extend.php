@@ -12,8 +12,7 @@ use Vadkuz\RussianLangpack\Api\Controller\SyncStatusController;
 use Vadkuz\RussianLangpack\Api\Controller\SyncTickController;
 
 return [
-    new Extend\LanguagePack(),
-    new Extend\Locales(__DIR__.'/locale-core'),
+    new Extend\LanguagePack('/locale-core'),
     new Extend\Locales(__DIR__.'/runtime-locale'),
 
     (new Extend\Frontend('admin'))
