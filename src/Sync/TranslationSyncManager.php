@@ -508,7 +508,7 @@ class TranslationSyncManager
      */
     private function buildReportPayload(array $state, ?array $processed, string $event): array
     {
-        $forumUrl = trim((string) $this->config->get('url', ''));
+        $forumUrl = $this->resolveForumUrl();
         $forumHost = $forumUrl !== '' ? (string) (parse_url($forumUrl, PHP_URL_HOST) ?? '') : '';
 
         $pending = $this->normalizeStringList($state['pending'] ?? []);
@@ -556,6 +556,30 @@ class TranslationSyncManager
                 'processed' => $processed,
             ],
         ];
+    }
+
+    private function resolveForumUrl(): string
+    {
+        $fromConfigRepo = trim((string) $this->config->get('url', ''));
+        if ($fromConfigRepo !== '') {
+            return $fromConfigRepo;
+        }
+
+        $basePath = dirname($this->packageRoot, 3);
+        $configPath = $basePath.'/config.php';
+
+        if (! is_file($configPath)) {
+            return '';
+        }
+
+        $config = @include $configPath;
+        if (! is_array($config)) {
+            return '';
+        }
+
+        $fromConfigFile = trim((string) ($config['url'] ?? ''));
+
+        return $fromConfigFile;
     }
 
     private function getInstalledPackageVersion(string $packageName): ?string
