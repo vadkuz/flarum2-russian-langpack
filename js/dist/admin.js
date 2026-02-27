@@ -63,11 +63,11 @@
       type: 'boolean',
       label: trans(
         'vadkuz-flarum2-russian-langpack.admin.settings.autosync_label',
-        'Enable automatic translation sync'
+        'Включить автосинхронизацию переводов'
       ),
       help: trans(
         'vadkuz-flarum2-russian-langpack.admin.settings.autosync_help',
-        'When disabled, runtime translation sync from local catalog/GitHub is paused.'
+        'Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается.'
       ),
     });
 
