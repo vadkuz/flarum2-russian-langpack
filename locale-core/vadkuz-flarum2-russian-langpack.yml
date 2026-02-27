@@ -6,6 +6,13 @@ vadkuz-flarum2-russian-langpack:
       queue: В очереди
       synced: Загружено
       missing: Отсутствует на GitHub
+      failed: Ошибок
+      progress: Прогресс
+      remaining: Осталось
+      syncing: Синхронизация...
+      idle: Ожидание
+      current_extension: Последний обработанный пакет
+      pending_preview: Далее в очереди
       last_action: Последнее действие
       last_message: Сообщение
       updated_at: Обновлено

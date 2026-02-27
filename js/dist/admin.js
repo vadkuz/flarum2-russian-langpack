@@ -106,6 +106,184 @@
     panel.appendChild(body);
   }
 
+  function asCount(value) {
+    var n = Number(value);
+    if (!isFinite(n) || n < 0) return 0;
+    return Math.floor(n);
+  }
+
+  function metricItem(label, value) {
+    var item = document.createElement('div');
+    item.style.minWidth = '120px';
+    item.style.padding = '8px 10px';
+    item.style.background = '#f7f7f7';
+    item.style.borderRadius = '6px';
+    item.style.border = '1px solid rgba(0,0,0,0.06)';
+
+    var labelEl = document.createElement('div');
+    labelEl.textContent = label;
+    labelEl.style.fontSize = '12px';
+    labelEl.style.color = '#666';
+    item.appendChild(labelEl);
+
+    var valueEl = document.createElement('div');
+    valueEl.textContent = String(value);
+    valueEl.style.fontSize = '16px';
+    valueEl.style.fontWeight = '700';
+    valueEl.style.marginTop = '2px';
+    valueEl.style.color = '#202020';
+    item.appendChild(valueEl);
+
+    return item;
+  }
+
+  function setPanelProgress(data) {
+    var panel = ensurePanel();
+    if (!panel) return;
+
+    panel.innerHTML = '';
+
+    var pending = asCount(data.pendingCount);
+    var synced = asCount(data.syncedCount);
+    var missing = asCount(data.missingCount);
+    var failed = asCount(data.failedCount);
+
+    var done = synced + missing;
+    var total = done + pending;
+    var percent = total > 0 ? Math.round((done * 100) / total) : 100;
+    if (percent < 0) percent = 0;
+    if (percent > 100) percent = 100;
+
+    var title = document.createElement('div');
+    title.textContent = trans(
+      'vadkuz-flarum2-russian-langpack.admin.sync.panel_title',
+      'Russian Translation Sync'
+    );
+    title.style.fontWeight = '700';
+    title.style.marginBottom = '10px';
+    panel.appendChild(title);
+
+    var status = document.createElement('div');
+    status.textContent = state.inFlight
+      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.syncing', 'Syncing...')
+      : trans('vadkuz-flarum2-russian-langpack.admin.sync.idle', 'Waiting');
+    status.style.fontSize = '12px';
+    status.style.fontWeight = '600';
+    status.style.marginBottom = '8px';
+    status.style.color = state.inFlight ? '#1f6feb' : '#666';
+    panel.appendChild(status);
+
+    var progressWrap = document.createElement('div');
+    progressWrap.style.height = '12px';
+    progressWrap.style.background = '#ececec';
+    progressWrap.style.borderRadius = '999px';
+    progressWrap.style.overflow = 'hidden';
+    progressWrap.style.marginBottom = '8px';
+
+    var progressBar = document.createElement('div');
+    progressBar.style.height = '100%';
+    progressBar.style.width = percent + '%';
+    progressBar.style.background = pending > 0 ? '#1f8b4c' : '#2d7a2d';
+    progressBar.style.transition = 'width 250ms ease';
+    progressWrap.appendChild(progressBar);
+    panel.appendChild(progressWrap);
+
+    var progressText = document.createElement('div');
+    progressText.textContent =
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.progress', 'Progress') +
+      ': ' +
+      done +
+      ' / ' +
+      total +
+      ' (' +
+      percent +
+      '%), ' +
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.remaining', 'Remaining') +
+      ': ' +
+      pending;
+    progressText.style.fontSize = '13px';
+    progressText.style.fontWeight = '600';
+    progressText.style.marginBottom = '10px';
+    progressText.style.color = '#333';
+    panel.appendChild(progressText);
+
+    var metrics = document.createElement('div');
+    metrics.style.display = 'flex';
+    metrics.style.flexWrap = 'wrap';
+    metrics.style.gap = '8px';
+    metrics.style.marginBottom = '10px';
+
+    metrics.appendChild(
+      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.queue', 'Queue'), pending)
+    );
+    metrics.appendChild(
+      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.synced', 'Downloaded'), synced)
+    );
+    metrics.appendChild(
+      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.missing', 'Missing'), missing)
+    );
+    metrics.appendChild(
+      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.failed', 'Failed attempts'), failed)
+    );
+    panel.appendChild(metrics);
+
+    if (data.processed && data.processed.extension) {
+      var processed = document.createElement('div');
+      processed.style.fontSize = '12px';
+      processed.style.marginBottom = '8px';
+      processed.style.color = '#555';
+      processed.textContent =
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.current_extension', 'Last processed') +
+        ': ' +
+        data.processed.extension +
+        (data.processed.result ? ' (' + data.processed.result + ')' : '');
+      panel.appendChild(processed);
+    }
+
+    if (data.pendingPreview && data.pendingPreview.length) {
+      var preview = document.createElement('div');
+      preview.style.fontSize = '12px';
+      preview.style.color = '#555';
+      preview.style.marginBottom = '6px';
+      preview.textContent = trans(
+        'vadkuz-flarum2-russian-langpack.admin.sync.pending_preview',
+        'Next in queue'
+      ) + ':';
+      panel.appendChild(preview);
+
+      var previewList = document.createElement('div');
+      previewList.style.fontSize = '12px';
+      previewList.style.color = '#666';
+      previewList.style.wordBreak = 'break-word';
+      previewList.textContent = data.pendingPreview.slice(0, 8).join(', ');
+      panel.appendChild(previewList);
+    }
+
+    if (data.lastMessage) {
+      var message = document.createElement('div');
+      message.style.fontSize = '12px';
+      message.style.color = '#666';
+      message.style.marginTop = '10px';
+      message.textContent =
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_message', 'Message') +
+        ': ' +
+        data.lastMessage;
+      panel.appendChild(message);
+    }
+
+    if (data.updatedAt) {
+      var updatedAt = document.createElement('div');
+      updatedAt.style.fontSize = '12px';
+      updatedAt.style.color = '#666';
+      updatedAt.style.marginTop = '4px';
+      updatedAt.textContent =
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.updated_at', 'Updated at') +
+        ': ' +
+        data.updatedAt;
+      panel.appendChild(updatedAt);
+    }
+  }
+
   function renderStatus() {
     if (!isOwnExtensionPage()) {
       removePanel();
@@ -125,38 +303,7 @@
       return;
     }
 
-    var data = state.data;
-    var lines = [];
-
-    lines.push(
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.queue', 'Queue') + ': ' + (data.pendingCount || 0)
-    );
-    lines.push(
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.synced', 'Downloaded') + ': ' + (data.syncedCount || 0)
-    );
-    lines.push(
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.missing', 'Missing') + ': ' + (data.missingCount || 0)
-    );
-
-    if (data.lastAction) {
-      lines.push(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_action', 'Last action') + ': ' + data.lastAction
-      );
-    }
-
-    if (data.lastMessage) {
-      lines.push(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_message', 'Message') + ': ' + data.lastMessage
-      );
-    }
-
-    if (data.updatedAt) {
-      lines.push(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.updated_at', 'Updated at') + ': ' + data.updatedAt
-      );
-    }
-
-    setPanelText(lines.join('\n'), false);
+    setPanelProgress(state.data);
   }
 
   async function apiRequest(path, method) {
