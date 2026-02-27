@@ -9,17 +9,12 @@ class TranslationSyncManager
 {
     private const STATE_KEY = 'vadkuz.russian_langpack.sync_state';
     private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
-    private const REPORTING_ENABLED_KEY = 'vadkuz.russian_langpack.reporting_enabled';
-    private const REPORTING_WEBHOOK_URL_KEY = 'vadkuz.russian_langpack.reporting_webhook_url';
-    private const REPORTING_FORUM_ID_KEY = 'vadkuz.russian_langpack.reporting_forum_id';
-    private const REPORTING_INTERVAL_MINUTES_KEY = 'vadkuz.russian_langpack.reporting_interval_minutes';
-    private const REPORTING_TOKEN_KEY = 'vadkuz.russian_langpack.reporting_token';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
     private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
     private const MAX_REMOTE_BYTES = 524288;
     private const MAX_RETRIES = 3;
-    private const DEFAULT_REPORTING_INTERVAL_MINUTES = 60;
-    private const DEFAULT_REPORTING_WEBHOOK_URL = 'https://flarum.vadim.online/api/langpack/ingest';
+    private const REPORTING_INTERVAL_MINUTES = 60;
+    private const REPORTING_WEBHOOK_URL = 'https://flarum.vadim.online/api/langpack/ingest';
 
     private const SELF_EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
     private string $packageRoot;
@@ -430,14 +425,6 @@ class TranslationSyncManager
      */
     private function maybeSendReport(array $state, ?array $processed, bool $force, string $event): array
     {
-        $reportingEnabled = $this->isReportingEnabled();
-        if (! $reportingEnabled) {
-            $state['lastReportStatus'] = 'disabled';
-            $state['lastReportMessage'] = 'Reporting is disabled.';
-
-            return $state;
-        }
-
         $webhookUrl = $this->getReportingWebhookUrl();
         if ($webhookUrl === '') {
             $state['lastReportStatus'] = 'webhook_not_configured';
@@ -456,8 +443,7 @@ class TranslationSyncManager
         $payload = $this->buildReportPayload($state, $processed, $event);
         $result = $this->httpPostJson(
             $webhookUrl,
-            $payload,
-            (string) ($this->settings->get(self::REPORTING_TOKEN_KEY) ?? '')
+            $payload
         );
 
         $state['lastReportAt'] = gmdate('c');
@@ -496,61 +482,17 @@ class TranslationSyncManager
 
     private function isReportingEnabled(): bool
     {
-        $raw = $this->settings->get(self::REPORTING_ENABLED_KEY);
-
-        if ($raw === null) {
-            return true;
-        }
-
-        if ($raw === true || $raw === 1) {
-            return true;
-        }
-
-        if ($raw === false || $raw === 0) {
-            return false;
-        }
-
-        if (! is_string($raw)) {
-            return true;
-        }
-
-        $normalized = strtolower(trim($raw));
-
-        if ($normalized === '') {
-            return true;
-        }
-
-        if (in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true)) {
-            return true;
-        }
-
-        if (in_array($normalized, ['0', 'false', 'disabled', 'no', 'off'], true)) {
-            return false;
-        }
-
         return true;
     }
 
     private function getReportingWebhookUrl(): string
     {
-        $raw = $this->settings->get(self::REPORTING_WEBHOOK_URL_KEY);
-        if (! is_string($raw) || trim($raw) === '') {
-            return self::DEFAULT_REPORTING_WEBHOOK_URL;
-        }
-
-        return trim($raw);
+        return self::REPORTING_WEBHOOK_URL;
     }
 
     private function getReportingIntervalMinutes(): int
     {
-        $raw = $this->settings->get(self::REPORTING_INTERVAL_MINUTES_KEY);
-        $minutes = (int) $raw;
-
-        if ($minutes <= 0) {
-            return self::DEFAULT_REPORTING_INTERVAL_MINUTES;
-        }
-
-        return min(10080, max(5, $minutes));
+        return self::REPORTING_INTERVAL_MINUTES;
     }
 
     /**
@@ -562,7 +504,6 @@ class TranslationSyncManager
     {
         $forumUrl = trim((string) $this->config->get('url', ''));
         $forumHost = $forumUrl !== '' ? (string) (parse_url($forumUrl, PHP_URL_HOST) ?? '') : '';
-        $forumId = trim((string) ($this->settings->get(self::REPORTING_FORUM_ID_KEY) ?? ''));
 
         $pending = $this->normalizeStringList($state['pending'] ?? []);
         $synced = $this->normalizeStringList($state['synced'] ?? []);
@@ -575,7 +516,6 @@ class TranslationSyncManager
             'event' => $event,
             'sentAt' => gmdate('c'),
             'forum' => [
-                'id' => $forumId !== '' ? $forumId : null,
                 'url' => $forumUrl !== '' ? $forumUrl : null,
                 'host' => $forumHost !== '' ? $forumHost : null,
                 'urlHash' => $forumUrl !== '' ? sha1($forumUrl) : null,
@@ -584,7 +524,7 @@ class TranslationSyncManager
                 'package' => 'vadkuz/flarum2-russian-langpack',
                 'version' => $this->getInstalledPackageVersion('vadkuz/flarum2-russian-langpack'),
                 'autosyncEnabled' => $this->isAutosyncEnabled(),
-                'reportingEnabled' => $this->isReportingEnabled(),
+                'reportingEnabled' => true,
                 'reportingIntervalMinutes' => $this->getReportingIntervalMinutes(),
             ],
             'runtime' => [
@@ -633,7 +573,7 @@ class TranslationSyncManager
      * @param array<string, mixed> $payload
      * @return array{status: int, message: string}
      */
-    private function httpPostJson(string $url, array $payload, string $token): array
+    private function httpPostJson(string $url, array $payload): array
     {
         if (! function_exists('curl_init')) {
             return ['status' => 500, 'message' => 'cURL extension is not available.'];
@@ -649,16 +589,20 @@ class TranslationSyncManager
             return ['status' => 500, 'message' => 'Could not initialize cURL.'];
         }
 
+        $timestamp = (string) time();
+        $nonce = $this->buildRequestNonce();
+        $secret = $this->getWebhookSigningSecret();
+        $signature = hash_hmac('sha256', $timestamp.'.'.$nonce.'.'.$body, $secret);
+
         $headers = [
             'Content-Type: application/json',
             'Accept: application/json',
             'User-Agent: Flarum2-Russian-Langpack-Report',
+            'X-Langpack-Timestamp: '.$timestamp,
+            'X-Langpack-Nonce: '.$nonce,
+            'X-Langpack-Signature: '.$signature,
+            'X-Langpack-Signature-Alg: hmac-sha256',
         ];
-
-        $trimmedToken = trim($token);
-        if ($trimmedToken !== '') {
-            $headers[] = 'X-Langpack-Token: '.$trimmedToken;
-        }
 
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -696,6 +640,36 @@ class TranslationSyncManager
         }
 
         return ['status' => $status, 'message' => 'OK'];
+    }
+
+    private function getWebhookSigningSecret(): string
+    {
+        $appKey = (string) ($this->config->get('app.key') ?? '');
+        $trimmed = trim($appKey);
+
+        if (str_starts_with($trimmed, 'base64:')) {
+            $decoded = base64_decode(substr($trimmed, 7), true);
+            if (is_string($decoded) && $decoded !== '') {
+                return hash('sha256', 'vadkuz-langpack|'.$decoded);
+            }
+        }
+
+        if ($trimmed !== '') {
+            return hash('sha256', 'vadkuz-langpack|'.$trimmed);
+        }
+
+        $forumUrl = (string) ($this->config->get('url') ?? '');
+
+        return hash('sha256', 'vadkuz-langpack|'.$forumUrl.'|fallback-secret');
+    }
+
+    private function buildRequestNonce(): string
+    {
+        try {
+            return bin2hex(random_bytes(8));
+        } catch (\Throwable) {
+            return sha1((string) microtime(true).'-'.(string) mt_rand());
+        }
     }
 
     private function normalizeExtensionId(string $value): string

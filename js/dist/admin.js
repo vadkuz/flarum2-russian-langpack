@@ -10,11 +10,6 @@
 
   var EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
   var AUTOSYNC_SETTING_KEY = 'vadkuz.russian_langpack.autosync_enabled';
-  var REPORTING_ENABLED_SETTING_KEY = 'vadkuz.russian_langpack.reporting_enabled';
-  var REPORTING_WEBHOOK_URL_SETTING_KEY = 'vadkuz.russian_langpack.reporting_webhook_url';
-  var REPORTING_FORUM_ID_SETTING_KEY = 'vadkuz.russian_langpack.reporting_forum_id';
-  var REPORTING_INTERVAL_SETTING_KEY = 'vadkuz.russian_langpack.reporting_interval_minutes';
-  var REPORTING_TOKEN_SETTING_KEY = 'vadkuz.russian_langpack.reporting_token';
   var PANEL_ID = 'vadkuz-ru-sync-panel';
   var PANEL_STYLE_ID = 'vadkuz-ru-sync-panel-style';
   var TICK_INTERVAL_MS = 12000;
@@ -73,74 +68,6 @@
       help: trans(
         'vadkuz-flarum2-russian-langpack.admin.settings.autosync_help',
         'Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается.'
-      ),
-    });
-
-    registry.registerSetting({
-      setting: REPORTING_ENABLED_SETTING_KEY,
-      type: 'boolean',
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_enabled_label',
-        'Включить webhook-отчёты'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_enabled_help',
-        'Отправлять информацию о статусе переводов и списке установленных расширений на webhook.'
-      ),
-    });
-
-    registry.registerSetting({
-      setting: REPORTING_WEBHOOK_URL_SETTING_KEY,
-      type: 'string',
-      placeholder: 'https://flarum.vadim.online/api/langpack/ingest',
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_webhook_url_label',
-        'Webhook URL'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_webhook_url_help',
-        'Куда отправлять JSON-отчёты. Отправка идет даже при missing=0.'
-      ),
-    });
-
-    registry.registerSetting({
-      setting: REPORTING_FORUM_ID_SETTING_KEY,
-      type: 'string',
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_forum_id_label',
-        'Forum ID (опционально)'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_forum_id_help',
-        'Ваш внутренний идентификатор форума для удобной агрегации.'
-      ),
-    });
-
-    registry.registerSetting({
-      setting: REPORTING_INTERVAL_SETTING_KEY,
-      type: 'number',
-      min: 5,
-      placeholder: 60,
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_interval_label',
-        'Интервал отчётов (минуты)'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_interval_help',
-        'Минимум 5 минут. По умолчанию 60.'
-      ),
-    });
-
-    registry.registerSetting({
-      setting: REPORTING_TOKEN_SETTING_KEY,
-      type: 'string',
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_token_label',
-        'Webhook token (опционально)'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.reporting_token_help',
-        'Будет отправлен в заголовке X-Langpack-Token.'
       ),
     });
 
