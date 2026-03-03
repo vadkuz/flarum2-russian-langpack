@@ -1,0 +1,56 @@
+flarum-suspend:
+  admin:
+    permissions:
+      suspend_users_label: 'Блокировать пользователей'
+  forum:
+    notifications:
+      user_suspended_text: '{username} заблокировал Вас на {timeReadable}'
+      user_suspended_indefinite_text: 'Вы заблокированы на неопределённый срок'
+      user_unsuspended_text: '{username} разблокировал Вас'
+    suspension_info:
+      dismiss_button: Закрыть
+      indefinite: 'Блокировка на неопределённый срок'
+      limited: 'Блокировка истекает {date}'
+      title: 'Аккаунт заблокирован'
+    suspend_user:
+      display_message: 'Показать сообщение пользователю'
+      indefinitely_label: 'Заблокирован навсегда'
+      limited_time_days_text: ' дней'
+      limited_time_label: 'Заблокирован на период...'
+      not_suspended_label: 'Не заблокирован'
+      placeholder_optional: Опционально
+      reason: 'Причина блокировки'
+      status_heading: 'Статус блокировки'
+      submit_button: '=> core.ref.save_changes'
+      title: 'Блокировка {username}'
+    user_badge:
+      suspended_tooltip: Заблокирован
+    user_controls:
+      suspend_button: Блокировать
+  email:
+    no_reason_given: 'Причина блокировки не указана.'
+    suspended:
+      subject: 'Ваш аккаунт заблокирован'
+      plain:
+        body: |
+          Ваш аккаунт заблокирован по следующей причине:
+
+          ---
+          {suspension_message}
+          ---
+      html:
+        body: "Ваш аккаунт на форуме {forumTitle} заблокирован по следующей причине:"
+    unsuspended:
+      subject: 'Ваш аккаунт разблокирован'
+      plain:
+        body: |
+          Ваша блокировка снята. Вы можете вернуться на форум по следующей ссылке:
+
+          {forum_url}
+      html:
+        body: "Ваша блокировка снята. Вы можете вернуться на [{forumTitle}]({forum_url}), когда будете готовы."
+  lib:
+    gambits:
+      users:
+        suspended:
+          key: заблокирован

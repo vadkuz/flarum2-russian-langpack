@@ -1,0 +1,61 @@
+flarum-subscriptions:
+  forum:
+    badge:
+      following_tooltip: '=> flarum-subscriptions.ref.following'
+      ignoring_tooltip: Скрыто
+    discussion_controls:
+      follow_button: '=> flarum-subscriptions.ref.follow'
+      unfollow_button: Отписка
+      unignore_button: 'Не скрывать'
+    following:
+      meta_title_text: '=> flarum-subscriptions.ref.following'
+    index:
+      following_link: Подписки
+    notifications:
+      new_post_text: '{username} ответил(а)'
+    settings:
+      follow_after_reply_label: 'Автоматически подписываться на темы, в которых я участвую'
+      notify_for_all_posts_label: 'Уведомлять о каждом новом сообщении, а не только о последнем в теме'
+      notify_new_post_label: 'Ответ в темах, на которые я подписан'
+    sub_controls:
+      follow_button: '=> flarum-subscriptions.ref.follow'
+      following_button: '=> flarum-subscriptions.ref.following'
+      following_text: 'Уведомлять обо всех ответах.'
+      ignoring_button: '=> flarum-subscriptions.ref.ignoring'
+      ignoring_text: 'Отключение уведомлений из этой темы. Скрыть в списке тем.'
+      not_following_button: Отписка
+      not_following_text: 'Уведомлять только когда @упоминают.'
+      notify_alert_tooltip: 'Получать уведомления форума при появлении новых сообщений'
+      notify_email_tooltip: 'Получать письма при появлении новых сообщений'
+  email:
+    new_post:
+      subject: '[Новое сообщение] {title}'
+      plain:
+        body: |
+          {poster_display_name} just posted in a discussion you're following: {title}.
+
+          To view the new activity, check out the following link:
+          {url}
+
+          ---
+
+          {content}
+
+          ---
+
+          You won't receive any more notifications about this discussion until you're up-to-date.
+      html:
+        body: |
+          {poster_display_name} just posted in a discussion you're following: [{title}]({url}).
+
+          You won't receive any more notifications about this discussion until you're up-to-date.
+  lib:
+    gambits:
+      discussions:
+        subscription:
+          following_key: подписка
+          ignoring_key: скрыто
+  ref:
+    follow: Подписка
+    following: Подписка
+    ignoring: Скрыть

@@ -1,0 +1,79 @@
+flarum-messages:
+  admin:
+    permissions:
+      send_messages_label: Отправлять личные сообщения
+      delete_own_messages_label: Удалять свои сообщения
+  forum:
+    composer:
+      discard_confirmation: Вы не отправили сообщение. Вы уверены, что хотите его отменить?
+      placeholder: Напишите сообщение...
+      recipients: Получатели
+      submit_button: Отправить сообщение
+      to: "Кому:"
+    dialog_list:
+      load_more_button: => core.ref.load_more
+      mark_as_read_tooltip: Отметить как прочитанное
+      title: Сообщения
+      view_all: Показать все сообщения
+    dialog_section:
+      back_label: Назад
+      cannot_reply_text: Этот пользователь не может отвечать
+      controls:
+        details_button: Подробности
+      controls_toggle_label: Действия с диалогом
+      details_modal:
+        created_at: Дата создания
+        recipients: Участники
+        title: Подробности диалога
+    header:
+      dropdown_tooltip: Сообщения
+    index:
+      messages_link: Сообщения
+    index_sort:
+      latest_button: Последние
+      newest_button: Сначала новые
+      oldest_button: Сначала старые
+    message_controls:
+      delete_button: Удалить
+      delete_confirmation: Вы уверены, что хотите удалить это сообщение? Это действие нельзя отменить.
+    messages_page:
+      cannot_send_message_button: Нельзя отправить сообщение
+      empty_text: Нет новых сообщений
+      hero:
+        title: Сообщения
+        subtitle: Ваши личные диалоги с другими пользователями
+      mark_all_as_read_tooltip: Отметить всё как прочитанное
+      refresh_tooltip: Обновить
+      send_message_button: Отправить сообщение
+      stream:
+        load_previous_button: Загрузить предыдущие сообщения
+        load_next_button: Загрузить следующие сообщения
+        start_of_the_conversation: Начало диалога
+        time_lapsed_text: => core.forum.post_stream.time_lapsed_text
+      title: Сообщения
+    recipient_selection_modal:
+      title: Выберите получателей этого сообщения
+    settings:
+      notify_message_received_label: Кто-то отправляет мне сообщение
+    user_controls:
+      send_message_button: Отправить сообщение
+      cannot_reply_text: Этот пользователь не может отвечать
+    notifications:
+      message_received_text: Уведомление о сообщении от {user}
+  email:
+    message_received:
+      subject: "{user_display_name} отправил(а) Вам сообщение"
+      plain:
+        body: |
+          {user_display_name} отправил(а) Вам новое сообщение.
+
+          {url}
+
+          ---
+
+          {content}
+      html:
+        body: "{user_display_name} отправил(а) Вам [новое сообщение]({url})."
+  lib:
+    dialog:
+      title: Диалог с {username}
