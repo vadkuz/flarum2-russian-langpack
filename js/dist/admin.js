@@ -428,6 +428,26 @@
     return Math.floor(n);
   }
 
+  function asUnixTs(value) {
+    var n = Number(value);
+    if (!isFinite(n) || n <= 0) return 0;
+    return Math.floor(n);
+  }
+
+  function formatClock(ts) {
+    var d = new Date(ts * 1000);
+    if (isNaN(d.getTime())) return '—';
+    var hh = String(d.getHours()).padStart(2, '0');
+    var mm = String(d.getMinutes()).padStart(2, '0');
+    var ss = String(d.getSeconds()).padStart(2, '0');
+    return hh + ':' + mm + ':' + ss;
+  }
+
+  function secondsLeft(ts) {
+    var now = Math.floor(Date.now() / 1000);
+    return Math.max(0, ts - now);
+  }
+
   function metricItem(label, value) {
     var item = document.createElement('div');
     item.style.minWidth = '120px';
@@ -612,6 +632,64 @@
     progressText.style.marginBottom = '10px';
     progressText.style.color = '#333';
     panel.appendChild(progressText);
+
+    var tickMeta = data.tickMeta && typeof data.tickMeta === 'object' ? data.tickMeta : null;
+    if (tickMeta) {
+      var tickWrap = document.createElement('div');
+      tickWrap.style.fontSize = '12px';
+      tickWrap.style.color = '#555';
+      tickWrap.style.marginBottom = '10px';
+      tickWrap.style.lineHeight = '1.45';
+
+      var lastTickTs = asUnixTs(tickMeta.lastTickTs);
+      var nextTickTs = asUnixTs(tickMeta.nextTickTs);
+      var nextUnblockTs = asUnixTs(tickMeta.nextUnblockTs);
+      var blockedCount = asCount(tickMeta.blockedCount);
+      var minTickInterval = asCount(tickMeta.minTickIntervalSeconds);
+      var pauseReason = String(tickMeta.pauseReason || '');
+
+      var lines = [];
+      lines.push(
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.tick_last', 'Последний тик') +
+          ': ' +
+          (lastTickTs > 0 ? formatClock(lastTickTs) : '—')
+      );
+      lines.push(
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.tick_next_in', 'Следующий тик через') +
+          ': ' +
+          (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c')
+      );
+      lines.push(
+        trans(
+          'vadkuz-flarum2-russian-langpack.admin.sync.tick_min_interval',
+          'Минимальный интервал'
+        ) +
+          ': ' +
+          (minTickInterval > 0 ? minTickInterval : 8) +
+          ' c'
+      );
+
+      if (blockedCount > 0 && nextUnblockTs > 0) {
+        var reasonLabel = pauseReason === 'retry_backoff'
+          ? trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_retry', 'retry backoff')
+          : trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_missing', 'cooldown missing');
+        lines.push(
+          trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_reason', 'Причина паузы') +
+            ': ' +
+            reasonLabel +
+            ', ' +
+            trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_until', 'до') +
+            ' ' +
+            formatClock(nextUnblockTs) +
+            ' (' +
+            blockedCount +
+            ')'
+        );
+      }
+
+      tickWrap.textContent = lines.join(' · ');
+      panel.appendChild(tickWrap);
+    }
 
     var metrics = document.createElement('div');
     metrics.style.display = 'flex';

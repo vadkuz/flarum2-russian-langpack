@@ -1068,6 +1068,7 @@ class TranslationSyncManager
         $synced = $this->normalizeStringList($state['synced'] ?? []);
         $missing = $this->normalizeStringList($state['missing'] ?? []);
         $failed = $this->normalizeIntMap($state['failed'] ?? []);
+        $tickMeta = $this->buildTickMeta($state);
         $extensionsStatus = $this->buildExtensionsStatus();
         $translatedExtensions = [];
         $missingExtensions = [];
@@ -1097,6 +1098,7 @@ class TranslationSyncManager
             'syncedCount' => count($synced),
             'missingCount' => count($missing),
             'failedCount' => array_sum($failed),
+            'tickMeta' => $tickMeta,
             'pendingPreview' => array_slice($pending, 0, 20),
             'extensionsStatus' => $extensionsStatus,
             'translatedExtensionsCount' => count($translatedExtensions),
@@ -1113,6 +1115,60 @@ class TranslationSyncManager
             'lastReportHttpCode' => (int) ($state['lastReportHttpCode'] ?? 0),
             'lastReportMessage' => is_string($state['lastReportMessage'] ?? null) ? $state['lastReportMessage'] : null,
             'processed' => $processed,
+        ];
+    }
+
+    /**
+     * @param array<string, mixed> $state
+     * @return array{lastTickTs: int, nextTickTs: int|null, minTickIntervalSeconds: int, blockedCount: int, nextUnblockTs: int|null, pauseReason: string|null}
+     */
+    private function buildTickMeta(array $state): array
+    {
+        $now = time();
+        $lastTickTs = max(0, (int) ($state['lastTickTs'] ?? 0));
+        $nextTickTs = $lastTickTs > 0 ? $lastTickTs + self::MIN_TICK_INTERVAL_SECONDS : null;
+        if (is_int($nextTickTs) && $nextTickTs <= $now) {
+            $nextTickTs = null;
+        }
+
+        $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+        $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
+
+        $enabled = $this->getEnabledExtensionIds();
+        $blockedCount = 0;
+        $nextUnblockTs = null;
+        $pauseReason = null;
+
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+                continue;
+            }
+
+            $retryTs = (int) ($retryAfter[$extensionId] ?? 0);
+            $missingTs = (int) ($missingCooldownUntil[$extensionId] ?? 0);
+            $untilTs = max($retryTs, $missingTs);
+            if ($untilTs <= $now) {
+                continue;
+            }
+
+            $blockedCount++;
+            if ($nextUnblockTs === null || $untilTs < $nextUnblockTs) {
+                $nextUnblockTs = $untilTs;
+                $pauseReason = $retryTs >= $missingTs ? 'retry_backoff' : 'missing_cooldown';
+            }
+        }
+
+        return [
+            'lastTickTs' => $lastTickTs,
+            'nextTickTs' => $nextTickTs,
+            'minTickIntervalSeconds' => self::MIN_TICK_INTERVAL_SECONDS,
+            'blockedCount' => $blockedCount,
+            'nextUnblockTs' => $nextUnblockTs,
+            'pauseReason' => $pauseReason,
         ];
     }
 
