@@ -540,6 +540,18 @@
     checkNowBtn.addEventListener('blur', setBtnBase);
     checkNowBtn.addEventListener('click', function () {
       if (state.inFlight) return;
+      setBtnActive();
+      setTimeout(function () {
+        if (state.inFlight) {
+          setBtnBase();
+          return;
+        }
+        if (checkNowBtn.matches(':hover')) {
+          setBtnHover();
+        } else {
+          setBtnBase();
+        }
+      }, 120);
       state.lastRequestAt = 0;
       runStatus().then(runTick);
     });
