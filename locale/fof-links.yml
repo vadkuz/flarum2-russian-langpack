@@ -1,0 +1,36 @@
+fof-links:
+  admin:
+    edit_link:
+      delete_link_button: Удалить ссылку
+      delete_link_confirmation: Вы уверены, что хотите удалить эту ссылку?
+      internal_link: Это внутренняя ссылка?
+      open_newtab: Открывать ссылку в новой вкладке
+      submit_button: => core.ref.save_changes
+      title: => fof-links.ref.create_link
+      title_label: => fof-links.ref.title
+      title_placeholder: => fof-links.ref.title
+      icon_label: => core.ref.icon
+      icon_text: => core.ref.icon_text
+      icon_additional_text: Если хотите использовать иконку бренда, используйте префикс <code>fab fa-</code>.
+      url_description: Оставьте пустым, чтобы показывать как ярлык.
+      url_label: => fof-links.ref.url
+      url_placeholder: => fof-links.ref.url
+      use_rel_me: Добавить атрибут <code>rel="me"</code> для подтверждения личности на других сайтах
+      visibility:
+        help: По умолчанию ссылки видны только пользователям <code>{admin}</code>. Настройте права, чтобы указать, кто может видеть эту ссылку.
+        help-disabled: Сохраните ссылку перед изменением настроек видимости.
+        label: Видимость ссылки
+        guest-only:
+          label: Только для {guest}?
+          help: Только {guest} может видеть эту ссылку. Право выше должно быть установлено на '{everyone}'.
+    links:
+      create_button: => fof-links.ref.create_link
+      links: => fof-links.ref.links
+      preconfigured: Ссылки на этом форуме преднастроены и не могут редактироваться здесь.
+    settings:
+      show_icons_only_on_tablet: Показывать только иконки на экранах планшетов
+  ref:
+    create_link: Создать ссылку
+    links: Ссылки
+    title: Название
+    url: URL
