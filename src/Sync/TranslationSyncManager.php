@@ -234,7 +234,7 @@ class TranslationSyncManager
         $basePath = dirname($this->packageRoot, 3);
         $localeCacheDir = $basePath.'/storage/locale';
 
-        foreach (glob($localeCacheDir.'/*.php') ?: [] as $path) {
+        foreach (glob($localeCacheDir.'/catalogue.*') ?: [] as $path) {
             @unlink($path);
         }
     }
