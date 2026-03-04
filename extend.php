@@ -13,7 +13,6 @@ use Vadkuz\RussianLangpack\Api\Controller\SyncTickController;
 use Vadkuz\RussianLangpack\Extend\LifecycleHooks;
 
 return [
-    new Extend\LanguagePack(),
     new LifecycleHooks(),
 
     (new Extend\Frontend('admin'))
