@@ -7,6 +7,7 @@ use Flarum\Extension\Extension;
 use Flarum\Extend\ExtenderInterface;
 use Flarum\Extend\LifecycleInterface;
 use Flarum\Locale\LocaleManager;
+use Flarum\Locale\Translator;
 use Illuminate\Contracts\Container\Container;
 use Vadkuz\RussianLangpack\Sync\TranslationSyncManager;
 
@@ -77,6 +78,8 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
             $locales->addCssFile($locale, $cssPath);
         }
 
+        $addedTranslations = 0;
+
         foreach (new DirectoryIterator($directory) as $file) {
             if (! $file->isFile()) {
                 continue;
@@ -87,6 +90,33 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
             }
 
             $locales->addTranslations($locale, $file->getPathname());
+            $addedTranslations++;
+        }
+
+        // Locale manager can be resolved after translator already built an empty
+        // catalogue for this locale. In that case, newly added resources are not
+        // visible until we drop in-memory cached catalogues.
+        if ($addedTranslations > 0) {
+            $this->resetTranslatorCatalogues($locales->getTranslator());
+        }
+    }
+
+    private function resetTranslatorCatalogues(Translator $translator): void
+    {
+        try {
+            $reflection = new \ReflectionObject($translator);
+            while ($reflection) {
+                if ($reflection->hasProperty('catalogues')) {
+                    $prop = $reflection->getProperty('catalogues');
+                    $prop->setAccessible(true);
+                    $prop->setValue($translator, []);
+                    break;
+                }
+
+                $reflection = $reflection->getParentClass();
+            }
+        } catch (\Throwable) {
+            // Best-effort only: never break locale loading on reflection issues.
         }
     }
 }
