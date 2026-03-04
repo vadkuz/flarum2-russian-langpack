@@ -971,6 +971,23 @@ class TranslationSyncManager
         $synced = $this->normalizeStringList($state['synced'] ?? []);
         $missing = $this->normalizeStringList($state['missing'] ?? []);
         $failed = $this->normalizeIntMap($state['failed'] ?? []);
+        $extensionsStatus = $this->buildExtensionsStatus();
+        $translatedExtensions = [];
+        $missingExtensions = [];
+
+        foreach ($extensionsStatus as $item) {
+            $id = is_string($item['id'] ?? null) ? $item['id'] : '';
+            $hasTranslation = (bool) ($item['hasTranslation'] ?? false);
+            if ($id === '') {
+                continue;
+            }
+
+            if ($hasTranslation) {
+                $translatedExtensions[] = $id;
+            } else {
+                $missingExtensions[] = $id;
+            }
+        }
 
         return [
             'ok' => true,
@@ -983,6 +1000,11 @@ class TranslationSyncManager
             'missingCount' => count($missing),
             'failedCount' => array_sum($failed),
             'pendingPreview' => array_slice($pending, 0, 20),
+            'extensionsStatus' => $extensionsStatus,
+            'translatedExtensionsCount' => count($translatedExtensions),
+            'missingExtensionsCount' => count($missingExtensions),
+            'translatedExtensions' => $translatedExtensions,
+            'missingExtensions' => $missingExtensions,
             'lastAction' => (string) ($state['lastAction'] ?? 'idle'),
             'lastMessage' => (string) ($state['lastMessage'] ?? ''),
             'lastRunAt' => is_string($state['lastRunAt'] ?? null) ? $state['lastRunAt'] : null,
@@ -994,6 +1016,37 @@ class TranslationSyncManager
             'lastReportMessage' => is_string($state['lastReportMessage'] ?? null) ? $state['lastReportMessage'] : null,
             'processed' => $processed,
         ];
+    }
+
+    /**
+     * @return list<array{id: string, hasTranslation: bool, source: string}>
+     */
+    private function buildExtensionsStatus(): array
+    {
+        $enabled = $this->getEnabledExtensionIds();
+        sort($enabled);
+
+        $result = [];
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            $source = 'none';
+            if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
+                $source = 'core';
+            } elseif (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
+                $source = 'runtime';
+            }
+
+            $result[] = [
+                'id' => $extensionId,
+                'hasTranslation' => $source !== 'none',
+                'source' => $source,
+            ];
+        }
+
+        return $result;
     }
 
     /**

@@ -27,6 +27,9 @@ vadkuz-flarum2-russian-langpack:
       idle: Ожидание
       current_extension: Последний обработанный пакет
       pending_preview: Далее в очереди
+      extensions_status_title: Статус переводов по включённым расширениям
+      translated_extensions: Перевод есть
+      missing_extensions: Перевод отсутствует
       last_action: Последнее действие
       last_message: Сообщение
       updated_at: Обновлено

@@ -310,6 +310,54 @@
     return item;
   }
 
+  function statusSection(title, items, chipBg, chipColor) {
+    var wrap = document.createElement('div');
+    wrap.style.flex = '1 1 320px';
+    wrap.style.minWidth = '260px';
+    wrap.style.border = '1px solid #e5e7eb';
+    wrap.style.borderRadius = '8px';
+    wrap.style.padding = '10px';
+    wrap.style.background = '#fafafa';
+
+    var heading = document.createElement('div');
+    heading.textContent = title + ' (' + items.length + ')';
+    heading.style.fontSize = '12px';
+    heading.style.fontWeight = '700';
+    heading.style.color = '#374151';
+    heading.style.marginBottom = '8px';
+    wrap.appendChild(heading);
+
+    if (!items.length) {
+      var empty = document.createElement('div');
+      empty.style.fontSize = '12px';
+      empty.style.color = '#9ca3af';
+      empty.textContent = '—';
+      wrap.appendChild(empty);
+      return wrap;
+    }
+
+    var list = document.createElement('div');
+    list.style.display = 'flex';
+    list.style.flexWrap = 'wrap';
+    list.style.gap = '6px';
+
+    items.forEach(function (id) {
+      var chip = document.createElement('span');
+      chip.textContent = id;
+      chip.style.fontSize = '12px';
+      chip.style.lineHeight = '1.2';
+      chip.style.padding = '4px 8px';
+      chip.style.borderRadius = '999px';
+      chip.style.background = chipBg;
+      chip.style.color = chipColor;
+      chip.style.border = '1px solid rgba(0,0,0,0.08)';
+      list.appendChild(chip);
+    });
+
+    wrap.appendChild(list);
+    return wrap;
+  }
+
   function setPanelProgress(data) {
     var panel = ensurePanel();
     if (!panel) return;
@@ -445,6 +493,47 @@
       previewList.style.wordBreak = 'break-word';
       previewList.textContent = data.pendingPreview.slice(0, 8).join(', ');
       panel.appendChild(previewList);
+    }
+
+    var translatedExtensions = Array.isArray(data.translatedExtensions) ? data.translatedExtensions : [];
+    var missingExtensions = Array.isArray(data.missingExtensions) ? data.missingExtensions : [];
+    if (translatedExtensions.length || missingExtensions.length) {
+      var extTitle = document.createElement('div');
+      extTitle.style.fontSize = '12px';
+      extTitle.style.fontWeight = '700';
+      extTitle.style.color = '#374151';
+      extTitle.style.marginTop = '12px';
+      extTitle.style.marginBottom = '8px';
+      extTitle.textContent = trans(
+        'vadkuz-flarum2-russian-langpack.admin.sync.extensions_status_title',
+        'Статус переводов по включенным расширениям'
+      );
+      panel.appendChild(extTitle);
+
+      var sections = document.createElement('div');
+      sections.style.display = 'flex';
+      sections.style.flexWrap = 'wrap';
+      sections.style.gap = '8px';
+      sections.style.marginBottom = '8px';
+
+      sections.appendChild(
+        statusSection(
+          trans('vadkuz-flarum2-russian-langpack.admin.sync.translated_extensions', 'Перевод есть'),
+          translatedExtensions,
+          '#e8f8ef',
+          '#116329'
+        )
+      );
+      sections.appendChild(
+        statusSection(
+          trans('vadkuz-flarum2-russian-langpack.admin.sync.missing_extensions', 'Перевод отсутствует'),
+          missingExtensions,
+          '#fff0f0',
+          '#9b1c1c'
+        )
+      );
+
+      panel.appendChild(sections);
     }
 
     if (data.lastMessage) {
