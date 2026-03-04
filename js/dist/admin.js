@@ -22,6 +22,9 @@
     lastRequestAt: 0,
     reloadedAfterSync: false,
   };
+  var loadingSkeletonTimer = null;
+  var loadingSkeletonMinUntil = 0;
+  var loadingSkeletonDelayTimer = null;
 
   function getApiBaseUrl() {
     try {
@@ -99,9 +102,22 @@
     panel.style.border = '1px solid rgba(0,0,0,0.1)';
     panel.style.borderRadius = '8px';
     panel.style.background = '#fff';
+    panel.dataset.skeletonUntil = String(Date.now() + 450);
 
     host.appendChild(panel);
     return panel;
+  }
+
+  function getSkeletonMinUntil() {
+    var minUntil = loadingSkeletonMinUntil;
+    var panel = document.getElementById(PANEL_ID);
+    if (panel && panel.dataset && panel.dataset.skeletonUntil) {
+      var panelMinUntil = parseInt(panel.dataset.skeletonUntil, 10);
+      if (!Number.isNaN(panelMinUntil) && panelMinUntil > minUntil) {
+        minUntil = panelMinUntil;
+      }
+    }
+    return minUntil;
   }
 
   function ensurePanelStyles() {
@@ -276,6 +292,33 @@
 
     panel.appendChild(skeletonBlock(12, '300px', 6, 6));
     panel.appendChild(skeletonBlock(12, '220px', 0, 6));
+  }
+
+  function startLoadingSkeletonLoop() {
+    var minUntil = Date.now() + 450;
+    if (minUntil > loadingSkeletonMinUntil) {
+      loadingSkeletonMinUntil = minUntil;
+    }
+    if (loadingSkeletonTimer) return;
+    loadingSkeletonTimer = window.setInterval(function () {
+      if (!isOwnExtensionPage() || state.data || state.error) {
+        stopLoadingSkeletonLoop();
+        return;
+      }
+      setPanelSkeleton();
+    }, 150);
+  }
+
+  function stopLoadingSkeletonLoop() {
+    if (!loadingSkeletonTimer) return;
+    window.clearInterval(loadingSkeletonTimer);
+    loadingSkeletonTimer = null;
+  }
+
+  function clearLoadingDelayTimer() {
+    if (!loadingSkeletonDelayTimer) return;
+    window.clearTimeout(loadingSkeletonDelayTimer);
+    loadingSkeletonDelayTimer = null;
   }
 
   function localizeSyncMessage(message) {
@@ -697,20 +740,44 @@
 
   function renderStatus() {
     if (!isOwnExtensionPage()) {
+      clearLoadingDelayTimer();
+      stopLoadingSkeletonLoop();
       removePanel();
       return;
     }
 
     if (state.error) {
+      clearLoadingDelayTimer();
+      stopLoadingSkeletonLoop();
       setPanelText(state.error, true);
       return;
     }
 
     if (!state.data) {
+      clearLoadingDelayTimer();
+      startLoadingSkeletonLoop();
       setPanelSkeleton();
       return;
     }
 
+    var now = Date.now();
+    var minUntil = getSkeletonMinUntil();
+    if (now < minUntil) {
+      setPanelSkeleton();
+      clearLoadingDelayTimer();
+      loadingSkeletonDelayTimer = window.setTimeout(function () {
+        loadingSkeletonDelayTimer = null;
+        renderStatus();
+      }, minUntil - now);
+      return;
+    }
+
+    clearLoadingDelayTimer();
+    stopLoadingSkeletonLoop();
+    var panel = ensurePanel();
+    if (panel && panel.dataset) {
+      delete panel.dataset.skeletonUntil;
+    }
     setPanelProgress(state.data);
   }
 
@@ -812,12 +879,21 @@
 
   function runLoop() {
     if (!isOwnExtensionPage()) {
+      clearLoadingDelayTimer();
+      stopLoadingSkeletonLoop();
       removePanel();
       return;
     }
 
     if (!state.data) {
+      startLoadingSkeletonLoop();
       setPanelSkeleton();
+      if (!ensurePanel()) {
+        // Wait until Flarum renders extension settings container,
+        // so skeleton is visible before first status response.
+        window.setTimeout(runLoop, 120);
+        return;
+      }
       runStatus().then(runTick);
       return;
     }
@@ -833,7 +909,12 @@
     window.addEventListener('hashchange', function () {
       state.lastRequestAt = 0;
       state.reloadedAfterSync = false;
+      state.data = null;
+      state.error = '';
+      loadingSkeletonMinUntil = 0;
+      clearLoadingDelayTimer();
       registerExtensionSettings();
+      startLoadingSkeletonLoop();
       runLoop();
     });
 
