@@ -977,15 +977,16 @@ class TranslationSyncManager
 
         foreach ($extensionsStatus as $item) {
             $id = is_string($item['id'] ?? null) ? $item['id'] : '';
+            $label = is_string($item['label'] ?? null) ? $item['label'] : $id;
             $hasTranslation = (bool) ($item['hasTranslation'] ?? false);
             if ($id === '') {
                 continue;
             }
 
             if ($hasTranslation) {
-                $translatedExtensions[] = $id;
+                $translatedExtensions[] = $label;
             } else {
-                $missingExtensions[] = $id;
+                $missingExtensions[] = $label;
             }
         }
 
@@ -1019,7 +1020,7 @@ class TranslationSyncManager
     }
 
     /**
-     * @return list<array{id: string, hasTranslation: bool, source: string}>
+     * @return list<array{id: string, label: string, hasTranslation: bool, source: string}>
      */
     private function buildExtensionsStatus(): array
     {
@@ -1041,12 +1042,28 @@ class TranslationSyncManager
 
             $result[] = [
                 'id' => $extensionId,
+                'label' => $this->toPackageStyleName($extensionId),
                 'hasTranslation' => $source !== 'none',
                 'source' => $source,
             ];
         }
 
         return $result;
+    }
+
+    private function toPackageStyleName(string $extensionId): string
+    {
+        if ($extensionId === '' || ! str_contains($extensionId, '-')) {
+            return $extensionId;
+        }
+
+        $parts = explode('-', $extensionId);
+        $vendor = array_shift($parts);
+        if (! is_string($vendor) || $vendor === '' || $parts === []) {
+            return $extensionId;
+        }
+
+        return $vendor.'/'.implode('-', $parts);
     }
 
     /**
