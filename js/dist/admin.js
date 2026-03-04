@@ -336,25 +336,52 @@
       return wrap;
     }
 
-    var list = document.createElement('div');
-    list.style.display = 'flex';
-    list.style.flexWrap = 'wrap';
-    list.style.gap = '6px';
-
+    var groups = {};
     items.forEach(function (id) {
-      var chip = document.createElement('span');
-      chip.textContent = id;
-      chip.style.fontSize = '12px';
-      chip.style.lineHeight = '1.2';
-      chip.style.padding = '4px 8px';
-      chip.style.borderRadius = '999px';
-      chip.style.background = chipBg;
-      chip.style.color = chipColor;
-      chip.style.border = '1px solid rgba(0,0,0,0.08)';
-      list.appendChild(chip);
+      var text = String(id || '').trim();
+      if (!text) return;
+      var idx = text.indexOf('/');
+      var vendor = idx > 0 ? text.slice(0, idx) : 'other';
+      if (!groups[vendor]) groups[vendor] = [];
+      groups[vendor].push(text);
     });
 
-    wrap.appendChild(list);
+    Object.keys(groups)
+      .sort()
+      .forEach(function (vendor) {
+        var groupWrap = document.createElement('div');
+        groupWrap.style.marginBottom = '8px';
+
+        var groupTitle = document.createElement('div');
+        groupTitle.textContent = vendor + ' (' + groups[vendor].length + ')';
+        groupTitle.style.fontSize = '11px';
+        groupTitle.style.fontWeight = '700';
+        groupTitle.style.color = '#6b7280';
+        groupTitle.style.marginBottom = '4px';
+        groupWrap.appendChild(groupTitle);
+
+        var list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexWrap = 'wrap';
+        list.style.gap = '6px';
+
+        groups[vendor].sort().forEach(function (id) {
+          var chip = document.createElement('span');
+          chip.textContent = id;
+          chip.style.fontSize = '12px';
+          chip.style.lineHeight = '1.2';
+          chip.style.padding = '4px 8px';
+          chip.style.borderRadius = '999px';
+          chip.style.background = chipBg;
+          chip.style.color = chipColor;
+          chip.style.border = '1px solid rgba(0,0,0,0.08)';
+          list.appendChild(chip);
+        });
+
+        groupWrap.appendChild(list);
+        wrap.appendChild(groupWrap);
+      });
+
     return wrap;
   }
 
