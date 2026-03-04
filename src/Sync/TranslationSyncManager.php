@@ -630,13 +630,23 @@ class TranslationSyncManager
     {
         $forumUrl = $this->resolveForumUrl();
         $forumHost = $forumUrl !== '' ? (string) (parse_url($forumUrl, PHP_URL_HOST) ?? '') : '';
+        $forumIp = $forumHost !== '' ? $this->resolveForumIp($forumHost) : '';
 
-        $pending = $this->normalizeStringList($state['pending'] ?? []);
-        $synced = $this->normalizeStringList($state['synced'] ?? []);
-        $missing = $this->normalizeStringList($state['missing'] ?? []);
-        $failed = $this->normalizeIntMap($state['failed'] ?? []);
         $enabled = $this->getEnabledExtensionIds();
         sort($enabled);
+        $missing = [];
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+                continue;
+            }
+
+            $missing[] = $this->toPackageStyleName($extensionId);
+        }
+        $missing = array_values(array_unique($missing));
 
         return [
             'event' => $event,
@@ -644,36 +654,11 @@ class TranslationSyncManager
             'forum' => [
                 'url' => $forumUrl !== '' ? $forumUrl : null,
                 'host' => $forumHost !== '' ? $forumHost : null,
-                'urlHash' => $forumUrl !== '' ? sha1($forumUrl) : null,
-            ],
-            'langpack' => [
-                'package' => 'vadkuz/flarum2-russian-langpack',
-                'version' => $this->getInstalledPackageVersion('vadkuz/flarum2-russian-langpack'),
-                'autosyncEnabled' => $this->isAutosyncEnabled(),
-                'reportingEnabled' => true,
-                'reportingIntervalMinutes' => $this->getReportingIntervalMinutes(),
-            ],
-            'runtime' => [
-                'phpVersion' => PHP_VERSION,
-                'flarumVersion' => $this->getInstalledPackageVersion('flarum/core'),
-                'timestamp' => time(),
+                'ip' => $forumIp !== '' ? $forumIp : null,
             ],
             'extensions' => [
-                'enabledCount' => count($enabled),
-                'enabled' => $enabled,
-                'pendingCount' => count($pending),
-                'pending' => $pending,
-                'syncedCount' => count($synced),
-                'synced' => $synced,
                 'missingCount' => count($missing),
                 'missing' => $missing,
-                'failedCount' => array_sum($failed),
-            ],
-            'sync' => [
-                'lastAction' => (string) ($state['lastAction'] ?? 'idle'),
-                'lastMessage' => (string) ($state['lastMessage'] ?? ''),
-                'updatedAt' => is_string($state['updatedAt'] ?? null) ? $state['updatedAt'] : null,
-                'processed' => $processed,
             ],
         ];
     }
@@ -700,6 +685,21 @@ class TranslationSyncManager
         $fromConfigFile = trim((string) ($config['url'] ?? ''));
 
         return $fromConfigFile;
+    }
+
+    private function resolveForumIp(string $host): string
+    {
+        $normalizedHost = trim($host);
+        if ($normalizedHost === '') {
+            return '';
+        }
+
+        $resolved = @gethostbyname($normalizedHost);
+        if (! is_string($resolved) || $resolved === '' || $resolved === $normalizedHost) {
+            return '';
+        }
+
+        return filter_var($resolved, FILTER_VALIDATE_IP) ? $resolved : '';
     }
 
     private function getInstalledPackageVersion(string $packageName): ?string
