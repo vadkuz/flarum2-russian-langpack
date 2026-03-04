@@ -4,18 +4,14 @@ namespace Vadkuz\RussianLangpack\Extend;
 
 use DirectoryIterator;
 use Flarum\Extension\Extension;
-use Flarum\Extension\ExtensionManager;
 use Flarum\Extend\ExtenderInterface;
 use Flarum\Extend\LifecycleInterface;
 use Flarum\Locale\LocaleManager;
 use Illuminate\Contracts\Container\Container;
-use SplFileInfo;
 use Vadkuz\RussianLangpack\Sync\TranslationSyncManager;
 
 class LifecycleHooks implements ExtenderInterface, LifecycleInterface
 {
-    private const CORE_LOCALE_FILES = ['core', 'validation'];
-
     /** @var array<string, bool> */
     private array $registeredLocales = [];
 
@@ -25,8 +21,8 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
             return;
         }
 
-        $register = function (LocaleManager $locales) use ($container, $extension): void {
-            $this->registerLocale($container, $locales, $extension);
+        $register = function (LocaleManager $locales) use ($extension): void {
+            $this->registerLocale($locales, $extension);
         };
 
         $container->resolving(LocaleManager::class, $register);
@@ -49,7 +45,7 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
     {
     }
 
-    private function registerLocale(Container $container, LocaleManager $locales, Extension $extension): void
+    private function registerLocale(LocaleManager $locales, Extension $extension): void
     {
         $locale = $extension->composerJsonAttribute('extra.flarum-locale.code');
         $title = $extension->composerJsonAttribute('extra.flarum-locale.title');
@@ -82,35 +78,15 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
         }
 
         foreach (new DirectoryIterator($directory) as $file) {
-            if (! $this->shouldLoad($container, $file)) {
+            if (! $file->isFile()) {
+                continue;
+            }
+
+            if (! in_array($file->getExtension(), ['yml', 'yaml'], true)) {
                 continue;
             }
 
             $locales->addTranslations($locale, $file->getPathname());
         }
-    }
-
-    private function shouldLoad(Container $container, SplFileInfo $file): bool
-    {
-        if (! $file->isFile()) {
-            return false;
-        }
-
-        if (! in_array($file->getExtension(), ['yml', 'yaml'], true)) {
-            return false;
-        }
-
-        $slug = $file->getBasename('.'.$file->getExtension());
-        $slug = str_replace(\Symfony\Component\Translation\MessageCatalogueInterface::INTL_DOMAIN_SUFFIX, '', $slug);
-
-        if (in_array($slug, self::CORE_LOCALE_FILES, true)) {
-            return true;
-        }
-
-        /** @var ExtensionManager|null $extensions */
-        static $extensions;
-        $extensions ??= $container->make(ExtensionManager::class);
-
-        return $extensions->isEnabled($slug);
     }
 }
