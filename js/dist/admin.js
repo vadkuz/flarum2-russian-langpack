@@ -505,8 +505,41 @@
     checkNowBtn.type = 'button';
     checkNowBtn.className = 'vadkuz-ru-check-btn';
     checkNowBtn.textContent = trans('vadkuz-flarum2-russian-langpack.admin.sync.check_now', 'Проверить сейчас');
-    checkNowBtn.style.cursor = state.inFlight ? 'not-allowed' : 'pointer';
     checkNowBtn.disabled = !!state.inFlight;
+    checkNowBtn.style.cursor = state.inFlight ? 'not-allowed' : 'pointer';
+
+    var setBtnBase = function () {
+      checkNowBtn.style.backgroundColor = state.inFlight ? '#f3f4f6' : '#ffffff';
+      checkNowBtn.style.borderColor = state.inFlight ? '#d1d5db' : '#c7ced8';
+      checkNowBtn.style.boxShadow = 'none';
+      checkNowBtn.style.transform = 'none';
+    };
+    var setBtnHover = function () {
+      if (state.inFlight) return;
+      checkNowBtn.style.backgroundColor = '#eef4ff';
+      checkNowBtn.style.borderColor = '#4b77d9';
+      checkNowBtn.style.boxShadow = '0 0 0 2px rgba(31, 111, 235, 0.14)';
+    };
+    var setBtnActive = function () {
+      if (state.inFlight) return;
+      checkNowBtn.style.backgroundColor = '#e1ebff';
+      checkNowBtn.style.borderColor = '#315fbf';
+      checkNowBtn.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.12)';
+      checkNowBtn.style.transform = 'translateY(1px) scale(0.99)';
+    };
+    var setBtnFocus = function () {
+      if (state.inFlight) return;
+      checkNowBtn.style.boxShadow = '0 0 0 2px rgba(31, 111, 235, 0.30)';
+      checkNowBtn.style.borderColor = '#1f6feb';
+    };
+
+    setBtnBase();
+    checkNowBtn.addEventListener('mouseenter', setBtnHover);
+    checkNowBtn.addEventListener('mouseleave', setBtnBase);
+    checkNowBtn.addEventListener('mousedown', setBtnActive);
+    checkNowBtn.addEventListener('mouseup', setBtnHover);
+    checkNowBtn.addEventListener('focus', setBtnFocus);
+    checkNowBtn.addEventListener('blur', setBtnBase);
     checkNowBtn.addEventListener('click', function () {
       if (state.inFlight) return;
       state.lastRequestAt = 0;
