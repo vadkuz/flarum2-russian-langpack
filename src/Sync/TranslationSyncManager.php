@@ -444,16 +444,16 @@ class TranslationSyncManager
      */
     private function getTranslationSource(string $extensionId): string
     {
+        if ($this->hasNativeRussianTranslation($extensionId)) {
+            return 'native';
+        }
+
         if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
             return 'core';
         }
 
         if (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
             return 'runtime';
-        }
-
-        if ($this->hasNativeRussianTranslation($extensionId)) {
-            return 'native';
         }
 
         return 'none';
