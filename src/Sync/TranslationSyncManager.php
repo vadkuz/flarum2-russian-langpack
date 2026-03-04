@@ -269,6 +269,11 @@ class TranslationSyncManager
         $enabled = $this->getEnabledExtensionIds();
         sort($enabled);
 
+        $hydratedFromLocalCatalog = $this->hydrateRuntimeFromLocalCatalog($enabled);
+        if ($hydratedFromLocalCatalog > 0) {
+            $state['cacheDirty'] = true;
+        }
+
         $extensionsHash = sha1(json_encode($enabled, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         $pending = $this->buildPendingQueue($enabled);
         $currentPending = $this->normalizeStringList($state['pending'] ?? []);
@@ -291,6 +296,46 @@ class TranslationSyncManager
         $state['updatedAt'] = gmdate('c');
 
         return $state;
+    }
+
+    /**
+     * @param list<string> $enabled
+     */
+    private function hydrateRuntimeFromLocalCatalog(array $enabled): int
+    {
+        $copied = 0;
+
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
+                continue;
+            }
+
+            $runtimePath = $this->runtimeLocaleDir.'/'.$extensionId.'.yml';
+            if (is_file($runtimePath)) {
+                continue;
+            }
+
+            $catalogPath = $this->catalogLocaleDir.'/'.$extensionId.'.yml';
+            if (! is_file($catalogPath)) {
+                continue;
+            }
+
+            $catalogBody = @file_get_contents($catalogPath);
+            if (! is_string($catalogBody) || $catalogBody === '' || ! $this->isLikelyYaml($catalogBody)) {
+                continue;
+            }
+
+            $written = @file_put_contents($runtimePath, $catalogBody, LOCK_EX);
+            if (is_int($written) && $written > 0) {
+                $copied++;
+            }
+        }
+
+        return $copied;
     }
 
     /**
