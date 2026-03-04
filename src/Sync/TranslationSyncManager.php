@@ -34,6 +34,8 @@ class TranslationSyncManager
         $this->packageRoot = dirname(__DIR__, 2);
         $this->catalogLocaleDir = $this->packageRoot.'/locale-catalog';
         $this->coreLocaleDir = $this->packageRoot.'/locale';
+        // Keep the legacy runtime directory path only for one-way migration
+        // from old package versions. Active translations are stored in /locale.
         $this->runtimeLocaleDir = $this->packageRoot.'/runtime-locale';
     }
 
@@ -46,6 +48,11 @@ class TranslationSyncManager
             $state = $this->loadState();
 
             $state = $this->refreshQueue($state);
+            $pending = $this->normalizeStringList($state['pending'] ?? []);
+            if ((bool) ($state['cacheDirty'] ?? false) && $pending === []) {
+                $this->invalidateTranslationCache();
+                $state['cacheDirty'] = false;
+            }
             $state = $this->maybeSendReport($state, null, false, 'status');
             $this->saveState($state);
 
@@ -189,7 +196,7 @@ class TranslationSyncManager
     private function withLock(callable $callback): array
     {
         $this->ensureRuntimeLocaleDir();
-        $lockPath = $this->runtimeLocaleDir.'/.sync.lock';
+        $lockPath = $this->coreLocaleDir.'/.sync.lock';
         $lockHandle = @fopen($lockPath, 'c+');
 
         if (! is_resource($lockHandle)) {
@@ -212,6 +219,11 @@ class TranslationSyncManager
 
     private function ensureRuntimeLocaleDir(): void
     {
+        if (! is_dir($this->coreLocaleDir)) {
+            @mkdir($this->coreLocaleDir, 0755, true);
+        }
+
+        // Keep compatibility with old installs where files could still live here.
         if (! is_dir($this->runtimeLocaleDir)) {
             @mkdir($this->runtimeLocaleDir, 0755, true);
         }
@@ -290,6 +302,11 @@ class TranslationSyncManager
         sort($enabled);
         $state = $this->cleanupStateMaps($state, $enabled);
 
+        $migratedFromLegacyRuntime = $this->migrateLegacyRuntimeLocalesToCore($enabled);
+        if ($migratedFromLegacyRuntime > 0) {
+            $state['cacheDirty'] = true;
+        }
+
         $hydratedFromLocalCatalog = $this->hydrateRuntimeFromLocalCatalog($enabled);
         if ($hydratedFromLocalCatalog > 0) {
             $state['cacheDirty'] = true;
@@ -333,8 +350,8 @@ class TranslationSyncManager
                 continue;
             }
 
-            $runtimePath = $this->runtimeLocaleDir.'/'.$extensionId.'.yml';
-            if (is_file($runtimePath)) {
+            $targetPath = $this->coreLocaleDir.'/'.$extensionId.'.yml';
+            if (is_file($targetPath)) {
                 continue;
             }
 
@@ -348,7 +365,7 @@ class TranslationSyncManager
                 continue;
             }
 
-            $written = @file_put_contents($runtimePath, $catalogBody, LOCK_EX);
+            $written = @file_put_contents($targetPath, $catalogBody, LOCK_EX);
             if (is_int($written) && $written > 0) {
                 $copied++;
             }
@@ -452,6 +469,7 @@ class TranslationSyncManager
             return 'core';
         }
 
+        // runtime-locale is legacy and kept only for migration compatibility.
         if (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
             return 'runtime';
         }
@@ -554,12 +572,13 @@ class TranslationSyncManager
      */
     private function pruneRuntimeLocales(array $enabledExtensions): int
     {
+        // Do not delete anything from /locale. Clean only legacy runtime files.
         $keep = array_fill_keys($enabledExtensions, true);
         $removed = 0;
 
         foreach (glob($this->runtimeLocaleDir.'/*.yml') ?: [] as $path) {
             $basename = pathinfo($path, PATHINFO_FILENAME);
-            if (! isset($keep[$basename]) || $this->getTranslationSource($basename) !== 'runtime') {
+            if (! isset($keep[$basename]) || is_file($this->coreLocaleDir.'/'.$basename.'.yml')) {
                 if (@unlink($path)) {
                     $removed++;
                 }
@@ -992,7 +1011,7 @@ class TranslationSyncManager
         if (is_file($catalogPath)) {
             $catalogBody = @file_get_contents($catalogPath);
             if (is_string($catalogBody) && $catalogBody !== '' && $this->isLikelyYaml($catalogBody)) {
-                $targetPath = $this->runtimeLocaleDir.'/'.$normalized.'.yml';
+                $targetPath = $this->coreLocaleDir.'/'.$normalized.'.yml';
                 $written = @file_put_contents($targetPath, $catalogBody, LOCK_EX);
 
                 if (is_int($written) && $written > 0) {
@@ -1008,6 +1027,39 @@ class TranslationSyncManager
             'status' => 'missing',
             'message' => 'Translation is missing in local catalog.',
         ];
+    }
+
+    /**
+     * @param list<string> $enabled
+     */
+    private function migrateLegacyRuntimeLocalesToCore(array $enabled): int
+    {
+        $migrated = 0;
+
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            $legacyPath = $this->runtimeLocaleDir.'/'.$extensionId.'.yml';
+            $corePath = $this->coreLocaleDir.'/'.$extensionId.'.yml';
+
+            if (! is_file($legacyPath) || is_file($corePath)) {
+                continue;
+            }
+
+            $body = @file_get_contents($legacyPath);
+            if (! is_string($body) || $body === '' || ! $this->isLikelyYaml($body)) {
+                continue;
+            }
+
+            $written = @file_put_contents($corePath, $body, LOCK_EX);
+            if (is_int($written) && $written > 0) {
+                $migrated++;
+            }
+        }
+
+        return $migrated;
     }
 
     private function isLikelyYaml(string $body): bool
