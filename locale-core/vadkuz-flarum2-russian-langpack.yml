@@ -18,16 +18,18 @@ vadkuz-flarum2-russian-langpack:
       loading: Загрузка статуса синхронизации...
       queue: В очереди
       synced: Загружено
+      synced_session: Синхронизировано в этой сессии
       missing: Отсутствует на GitHub
       failed: Ошибок
       progress: Прогресс
+      queue_progress: Очередь синка
       remaining: Осталось
       disabled: Автосинхронизация выключена
       syncing: Синхронизация...
       idle: Ожидание
       current_extension: Последний обработанный пакет
       pending_preview: Далее в очереди
-      extensions_status_title: Статус переводов по включённым расширениям
+      extensions_status_title: Общий статус переводов (сейчас)
       translated_extensions: Перевод есть
       missing_extensions: Перевод отсутствует
       last_action: Последнее действие

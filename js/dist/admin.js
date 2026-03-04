@@ -426,7 +426,7 @@
 
     var progressText = document.createElement('div');
     progressText.textContent =
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.progress', 'Progress') +
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.queue_progress', 'Sync queue') +
       ': ' +
       done +
       ' / ' +
@@ -453,7 +453,13 @@
       metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.queue', 'Queue'), pending)
     );
     metrics.appendChild(
-      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.synced', 'Downloaded'), synced)
+      metricItem(
+        trans(
+          'vadkuz-flarum2-russian-langpack.admin.sync.synced_session',
+          'Synced in this session'
+        ),
+        synced
+      )
     );
     metrics.appendChild(
       metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.missing', 'Missing'), missing)
@@ -506,7 +512,7 @@
       extTitle.style.marginBottom = '8px';
       extTitle.textContent = trans(
         'vadkuz-flarum2-russian-langpack.admin.sync.extensions_status_title',
-        'Статус переводов по включенным расширениям'
+        'Общий статус переводов (сейчас)'
       );
       panel.appendChild(extTitle);
 
