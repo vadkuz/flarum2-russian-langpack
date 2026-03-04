@@ -302,7 +302,7 @@ class TranslationSyncManager
         sort($enabled);
         $state = $this->cleanupStateMaps($state, $enabled);
 
-        $migratedFromLegacyRuntime = $this->migrateLegacyRuntimeLocalesToCore($enabled);
+        $migratedFromLegacyRuntime = $this->migrateLegacyRuntimeLocalesToCore();
         if ($migratedFromLegacyRuntime > 0) {
             $state['cacheDirty'] = true;
         }
@@ -1029,22 +1029,33 @@ class TranslationSyncManager
         ];
     }
 
-    /**
-     * @param list<string> $enabled
-     */
-    private function migrateLegacyRuntimeLocalesToCore(array $enabled): int
+    private function migrateLegacyRuntimeLocalesToCore(): int
     {
-        $migrated = 0;
+        if (! is_dir($this->runtimeLocaleDir)) {
+            return 0;
+        }
 
-        foreach ($enabled as $extensionId) {
+        $migrated = 0;
+        $legacyFiles = array_values(array_unique(array_merge(
+            glob($this->runtimeLocaleDir.'/*.yml') ?: [],
+            glob($this->runtimeLocaleDir.'/*.yaml') ?: []
+        )));
+
+        foreach ($legacyFiles as $legacyPath) {
+            $basename = pathinfo($legacyPath, PATHINFO_FILENAME);
+            $extensionId = $this->normalizeExtensionId($basename);
+            if ($extensionId === '') {
+                continue;
+            }
+
             if (! $this->shouldSyncExtension($extensionId)) {
                 continue;
             }
 
-            $legacyPath = $this->runtimeLocaleDir.'/'.$extensionId.'.yml';
             $corePath = $this->coreLocaleDir.'/'.$extensionId.'.yml';
 
-            if (! is_file($legacyPath) || is_file($corePath)) {
+            if (is_file($corePath)) {
+                @unlink($legacyPath);
                 continue;
             }
 
@@ -1056,6 +1067,7 @@ class TranslationSyncManager
             $written = @file_put_contents($corePath, $body, LOCK_EX);
             if (is_int($written) && $written > 0) {
                 $migrated++;
+                @unlink($legacyPath);
             }
         }
 
