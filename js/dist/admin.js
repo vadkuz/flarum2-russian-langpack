@@ -147,6 +147,39 @@
       '  background-size: 400% 100%;',
       '  animation: vadkuzRuSkeletonShimmer 1.2s ease-in-out infinite;',
       '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-check-btn {',
+      '  font-size: 12px;',
+      '  font-weight: 600;',
+      '  padding: 6px 10px;',
+      '  border-radius: 6px;',
+      '  border: 1px solid #c7ced8;',
+      '  background: #ffffff;',
+      '  color: #1f2937;',
+      '  cursor: pointer;',
+      '  transition: background-color .12s ease, border-color .12s ease, box-shadow .12s ease, transform .05s ease;',
+      '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-check-btn:hover:not(:disabled) {',
+      '  background: #f3f6fb;',
+      '  border-color: #94a3b8;',
+      '  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.08);',
+      '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-check-btn:active:not(:disabled) {',
+      '  background: #e8edf5;',
+      '  border-color: #64748b;',
+      '  transform: translateY(1px);',
+      '  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.10);',
+      '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-check-btn:focus-visible {',
+      '  outline: none;',
+      '  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.30);',
+      '  border-color: #1f6feb;',
+      '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-check-btn:disabled {',
+      '  cursor: not-allowed;',
+      '  opacity: .72;',
+      '  background: #f3f4f6;',
+      '  border-color: #d1d5db;',
+      '}',
     ].join('\n');
 
     document.head.appendChild(style);
@@ -470,13 +503,8 @@
 
     var checkNowBtn = document.createElement('button');
     checkNowBtn.type = 'button';
+    checkNowBtn.className = 'vadkuz-ru-check-btn';
     checkNowBtn.textContent = trans('vadkuz-flarum2-russian-langpack.admin.sync.check_now', 'Проверить сейчас');
-    checkNowBtn.style.fontSize = '12px';
-    checkNowBtn.style.fontWeight = '600';
-    checkNowBtn.style.padding = '6px 10px';
-    checkNowBtn.style.borderRadius = '6px';
-    checkNowBtn.style.border = '1px solid rgba(0,0,0,0.15)';
-    checkNowBtn.style.background = '#fff';
     checkNowBtn.style.cursor = state.inFlight ? 'not-allowed' : 'pointer';
     checkNowBtn.disabled = !!state.inFlight;
     checkNowBtn.addEventListener('click', function () {
