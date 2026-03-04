@@ -251,21 +251,11 @@ class TranslationSyncManager
         sort($enabled);
 
         $extensionsHash = sha1(json_encode($enabled, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        if (($state['extensionsHash'] ?? '') === $extensionsHash) {
+        $pending = $this->buildPendingQueue($enabled);
+        $currentPending = $this->normalizeStringList($state['pending'] ?? []);
+
+        if (($state['extensionsHash'] ?? '') === $extensionsHash && $currentPending === $pending) {
             return $state;
-        }
-
-        $pending = [];
-        foreach ($enabled as $extensionId) {
-            if (! $this->shouldSyncExtension($extensionId)) {
-                continue;
-            }
-
-            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
-                continue;
-            }
-
-            $pending[] = $extensionId;
         }
 
         $state['extensionsHash'] = $extensionsHash;
@@ -279,6 +269,29 @@ class TranslationSyncManager
         $state['updatedAt'] = gmdate('c');
 
         return $state;
+    }
+
+    /**
+     * @param list<string> $enabled
+     * @return list<string>
+     */
+    private function buildPendingQueue(array $enabled): array
+    {
+        $pending = [];
+
+        foreach ($enabled as $extensionId) {
+            if (! $this->shouldSyncExtension($extensionId)) {
+                continue;
+            }
+
+            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+                continue;
+            }
+
+            $pending[] = $extensionId;
+        }
+
+        return $pending;
     }
 
     private function hasRuntimeOrCoreTranslation(string $extensionId): bool
