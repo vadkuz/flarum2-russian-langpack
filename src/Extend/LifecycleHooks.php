@@ -97,6 +97,7 @@ class LifecycleHooks implements ExtenderInterface, LifecycleInterface
         // catalogue for this locale. In that case, newly added resources are not
         // visible until we drop in-memory cached catalogues.
         if ($addedTranslations > 0) {
+            $locales->clearCache();
             $this->resetTranslatorCatalogues($locales->getTranslator());
         }
     }
