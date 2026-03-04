@@ -21,7 +21,7 @@ php flarum assets:publish
 
 ### Автосинхронизация недостающих переводов (без cron)
 
-- По умолчанию загружается только базовый набор из `locale-core` + динамические файлы из `runtime-locale`.
+- По умолчанию загружается базовый набор из `locale` + динамические файлы из `runtime-locale`.
 - Полный словарь хранится в `locale-catalog` и не подключается напрямую, чтобы уменьшить нагрузку.
 - Синхронизация запускается автоматически только на странице расширения `Русский (Flarum2)` в админке.
 - Список задач строится по `settings.extensions_enabled` (только включенные расширения форума).
@@ -51,7 +51,7 @@ In Flarum admin panel, set Russian as default language: `Appearance -> Languages
 
 ### Automatic missing translation sync (no cron)
 
-- By default only minimal locales from `locale-core` + dynamic files from `runtime-locale` are loaded.
+- By default base locales from `locale` + dynamic files from `runtime-locale` are loaded.
 - Full dictionary is stored in `locale-catalog` and is not loaded directly, which reduces runtime load.
 - Sync runs automatically only when the `Русский (Flarum2)` extension page is open in admin.
 - Queue is generated from `settings.extensions_enabled` (enabled forum extensions only).

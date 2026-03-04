@@ -33,7 +33,7 @@ class TranslationSyncManager
     {
         $this->packageRoot = dirname(__DIR__, 2);
         $this->catalogLocaleDir = $this->packageRoot.'/locale-catalog';
-        $this->coreLocaleDir = $this->packageRoot.'/locale-core';
+        $this->coreLocaleDir = $this->packageRoot.'/locale';
         $this->runtimeLocaleDir = $this->packageRoot.'/runtime-locale';
     }
 
