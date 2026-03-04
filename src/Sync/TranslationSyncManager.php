@@ -23,6 +23,8 @@ class TranslationSyncManager
     private string $catalogLocaleDir;
     private string $coreLocaleDir;
     private string $runtimeLocaleDir;
+    /** @var array<string, bool> */
+    private array $nativeTranslationPresence = [];
 
     public function __construct(
         private readonly SettingsRepositoryInterface $settings,
@@ -371,7 +373,7 @@ class TranslationSyncManager
                 continue;
             }
 
-            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if ($this->hasAvailableTranslation($extensionId)) {
                 continue;
             }
 
@@ -401,7 +403,7 @@ class TranslationSyncManager
 
         $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
         foreach ($missingCooldownUntil as $extensionId => $untilTs) {
-            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasAvailableTranslation($extensionId)) {
                 unset($missingCooldownUntil[$extensionId]);
             }
         }
@@ -409,7 +411,7 @@ class TranslationSyncManager
 
         $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
         foreach ($retryAfter as $extensionId => $untilTs) {
-            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasAvailableTranslation($extensionId)) {
                 unset($retryAfter[$extensionId]);
             }
         }
@@ -417,7 +419,7 @@ class TranslationSyncManager
 
         $failed = $this->normalizeIntMap($state['failed'] ?? []);
         foreach (array_keys($failed) as $extensionId) {
-            if (! isset($enabledSet[$extensionId]) || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if (! isset($enabledSet[$extensionId]) || $this->hasAvailableTranslation($extensionId)) {
                 unset($failed[$extensionId]);
             }
         }
@@ -425,17 +427,109 @@ class TranslationSyncManager
 
         $missing = $this->normalizeStringList($state['missing'] ?? []);
         $missing = array_values(array_filter($missing, function (string $extensionId) use ($enabledSet): bool {
-            return isset($enabledSet[$extensionId]) && ! $this->hasRuntimeOrCoreTranslation($extensionId);
+            return isset($enabledSet[$extensionId]) && ! $this->hasAvailableTranslation($extensionId);
         }));
         $state['missing'] = $missing;
 
         return $state;
     }
 
-    private function hasRuntimeOrCoreTranslation(string $extensionId): bool
+    private function hasAvailableTranslation(string $extensionId): bool
     {
-        return is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')
-            || is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml');
+        return $this->getTranslationSource($extensionId) !== 'none';
+    }
+
+    /**
+     * @return 'core'|'runtime'|'native'|'none'
+     */
+    private function getTranslationSource(string $extensionId): string
+    {
+        if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
+            return 'core';
+        }
+
+        if (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
+            return 'runtime';
+        }
+
+        if ($this->hasNativeRussianTranslation($extensionId)) {
+            return 'native';
+        }
+
+        return 'none';
+    }
+
+    private function hasNativeRussianTranslation(string $extensionId): bool
+    {
+        $packageName = $this->toPackageStyleName($extensionId);
+        if ($packageName === '' || ! str_contains($packageName, '/')) {
+            return false;
+        }
+
+        if (array_key_exists($packageName, $this->nativeTranslationPresence)) {
+            return $this->nativeTranslationPresence[$packageName];
+        }
+
+        $installPath = $this->getInstalledPackagePath($packageName);
+        if ($installPath === null || $installPath === '' || ! is_dir($installPath)) {
+            $this->nativeTranslationPresence[$packageName] = false;
+            return false;
+        }
+
+        $directCandidates = [
+            $installPath.'/locale/ru.yml',
+            $installPath.'/locale/ru.yaml',
+            $installPath.'/locale/ru.json',
+            $installPath.'/locale/ru_RU.yml',
+            $installPath.'/locale/ru_RU.yaml',
+            $installPath.'/locale/ru_RU.json',
+            $installPath.'/locale/ru-RU.yml',
+            $installPath.'/locale/ru-RU.yaml',
+            $installPath.'/locale/ru-RU.json',
+            $installPath.'/locales/ru.yml',
+            $installPath.'/locales/ru.yaml',
+            $installPath.'/locales/ru.json',
+            $installPath.'/resources/locale/ru.yml',
+            $installPath.'/resources/locale/ru.yaml',
+            $installPath.'/resources/locale/ru.json',
+        ];
+
+        foreach ($directCandidates as $path) {
+            if (is_file($path)) {
+                $this->nativeTranslationPresence[$packageName] = true;
+                return true;
+            }
+        }
+
+        $globPatterns = [
+            $installPath.'/locale/ru/*',
+            $installPath.'/locale/ru_RU/*',
+            $installPath.'/locale/ru-RU/*',
+            $installPath.'/locales/ru/*',
+            $installPath.'/locales/ru_RU/*',
+            $installPath.'/locales/ru-RU/*',
+            $installPath.'/resources/locale/ru/*',
+            $installPath.'/resources/locale/ru_RU/*',
+            $installPath.'/resources/locale/ru-RU/*',
+        ];
+
+        foreach ($globPatterns as $pattern) {
+            $paths = glob($pattern);
+            if ($paths === false) {
+                continue;
+            }
+
+            foreach ($paths as $path) {
+                if (is_file($path)) {
+                    $this->nativeTranslationPresence[$packageName] = true;
+                    return true;
+                }
+            }
+        }
+
+        $this->nativeTranslationPresence[$packageName] = false;
+
+        return false;
     }
 
     private function shouldSyncExtension(string $extensionId): bool
@@ -630,7 +724,7 @@ class TranslationSyncManager
                 continue;
             }
 
-            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if ($this->hasAvailableTranslation($extensionId)) {
                 continue;
             }
 
@@ -704,6 +798,28 @@ class TranslationSyncManager
             }
 
             return (string) (\Composer\InstalledVersions::getPrettyVersion($packageName) ?? '');
+        } catch (\Throwable) {
+            return null;
+        }
+    }
+
+    private function getInstalledPackagePath(string $packageName): ?string
+    {
+        if (! class_exists(\Composer\InstalledVersions::class)) {
+            return null;
+        }
+
+        try {
+            if (! \Composer\InstalledVersions::isInstalled($packageName)) {
+                return null;
+            }
+
+            $path = \Composer\InstalledVersions::getInstallPath($packageName);
+            if (! is_string($path) || trim($path) === '') {
+                return null;
+            }
+
+            return $path;
         } catch (\Throwable) {
             return null;
         }
@@ -988,7 +1104,7 @@ class TranslationSyncManager
                 continue;
             }
 
-            if ($this->hasRuntimeOrCoreTranslation($extensionId)) {
+            if ($this->hasAvailableTranslation($extensionId)) {
                 continue;
             }
 
@@ -1030,12 +1146,7 @@ class TranslationSyncManager
                 continue;
             }
 
-            $source = 'none';
-            if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
-                $source = 'core';
-            } elseif (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
-                $source = 'runtime';
-            }
+            $source = $this->getTranslationSource($extensionId);
 
             $result[] = [
                 'id' => $extensionId,
