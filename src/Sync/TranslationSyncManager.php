@@ -195,7 +195,7 @@ class TranslationSyncManager
      */
     private function withLock(callable $callback): array
     {
-        $this->ensureRuntimeLocaleDir();
+        $this->ensureLocaleDir();
         $lockPath = $this->coreLocaleDir.'/.sync.lock';
         $lockHandle = @fopen($lockPath, 'c+');
 
@@ -217,15 +217,10 @@ class TranslationSyncManager
         }
     }
 
-    private function ensureRuntimeLocaleDir(): void
+    private function ensureLocaleDir(): void
     {
         if (! is_dir($this->coreLocaleDir)) {
             @mkdir($this->coreLocaleDir, 0755, true);
-        }
-
-        // Keep compatibility with old installs where files could still live here.
-        if (! is_dir($this->runtimeLocaleDir)) {
-            @mkdir($this->runtimeLocaleDir, 0755, true);
         }
     }
 
@@ -323,10 +318,7 @@ class TranslationSyncManager
         $state['extensionsHash'] = $extensionsHash;
         $state['pending'] = $pending;
         $state['synced'] = [];
-        $state['prunedRuntimeFiles'] = $this->pruneRuntimeLocales($enabled);
-        if ((int) $state['prunedRuntimeFiles'] > 0) {
-            $state['cacheDirty'] = true;
-        }
+        $state['prunedRuntimeFiles'] = 0;
         $state['lastAction'] = 'queue_refreshed';
         $state['lastMessage'] = 'Queue refreshed from enabled extensions.';
         $state['updatedAt'] = gmdate('c');
@@ -457,7 +449,7 @@ class TranslationSyncManager
     }
 
     /**
-     * @return 'core'|'runtime'|'native'|'none'
+     * @return 'core'|'native'|'none'
      */
     private function getTranslationSource(string $extensionId): string
     {
@@ -467,11 +459,6 @@ class TranslationSyncManager
 
         if (is_file($this->coreLocaleDir.'/'.$extensionId.'.yml')) {
             return 'core';
-        }
-
-        // runtime-locale is legacy and kept only for migration compatibility.
-        if (is_file($this->runtimeLocaleDir.'/'.$extensionId.'.yml')) {
-            return 'runtime';
         }
 
         return 'none';
@@ -565,27 +552,6 @@ class TranslationSyncManager
         }
 
         return true;
-    }
-
-    /**
-     * @param list<string> $enabledExtensions
-     */
-    private function pruneRuntimeLocales(array $enabledExtensions): int
-    {
-        // Do not delete anything from /locale. Clean only legacy runtime files.
-        $keep = array_fill_keys($enabledExtensions, true);
-        $removed = 0;
-
-        foreach (glob($this->runtimeLocaleDir.'/*.yml') ?: [] as $path) {
-            $basename = pathinfo($path, PATHINFO_FILENAME);
-            if (! isset($keep[$basename]) || is_file($this->coreLocaleDir.'/'.$basename.'.yml')) {
-                if (@unlink($path)) {
-                    $removed++;
-                }
-            }
-        }
-
-        return $removed;
     }
 
     /**

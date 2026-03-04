@@ -25,7 +25,7 @@ php flarum assets:publish
 - Полный словарь хранится в `locale-catalog` и не подключается напрямую, чтобы уменьшить нагрузку.
 - Синхронизация запускается автоматически только на странице расширения `Русский (Flarum2)` в админке.
 - Список задач строится по `settings.extensions_enabled` (только включенные расширения форума).
-- Если локальный runtime-перевод отсутствует, расширение сначала копирует `locale-catalog/<extension-id>.yml`, а если файла нет — пробует загрузить его с GitHub.
+- Если перевода нет в `locale`, расширение копирует `locale-catalog/<extension-id>.yml`.
 - Если файл не найден, интерфейс этого расширения остается на EN fallback.
 
 ### Удаление
@@ -55,7 +55,7 @@ In Flarum admin panel, set Russian as default language: `Appearance -> Languages
 - Full dictionary is stored in `locale-catalog` and is not loaded directly, which reduces runtime load.
 - Sync runs automatically only when the `Русский (Flarum2)` extension page is open in admin.
 - Queue is generated from `settings.extensions_enabled` (enabled forum extensions only).
-- If runtime translation is missing, extension first copies `locale-catalog/<extension-id>.yml`, and if not found then tries to download it from GitHub.
+- If translation is missing in `locale`, extension copies `locale-catalog/<extension-id>.yml`.
 - If a file is not available, UI falls back to English for that extension.
 
 ### Removal
