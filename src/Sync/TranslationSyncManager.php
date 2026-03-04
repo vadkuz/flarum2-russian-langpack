@@ -98,6 +98,7 @@ class TranslationSyncManager
                 ];
 
                 if ($result['status'] === 'synced') {
+                    $this->invalidateTranslationCache();
                     $synced = $this->normalizeStringList($state['synced'] ?? []);
                     $synced[] = $extensionId;
                     $state['synced'] = array_values(array_unique($synced));
@@ -192,6 +193,16 @@ class TranslationSyncManager
         }
     }
 
+    private function invalidateTranslationCache(): void
+    {
+        $basePath = dirname($this->packageRoot, 3);
+        $localeCacheDir = $basePath.'/storage/locale';
+
+        foreach (glob($localeCacheDir.'/*.php') ?: [] as $path) {
+            @unlink($path);
+        }
+    }
+
     /**
      * @return array<string, mixed>
      */
@@ -264,6 +275,9 @@ class TranslationSyncManager
         $state['missing'] = [];
         $state['failed'] = [];
         $state['prunedRuntimeFiles'] = $this->pruneRuntimeLocales($enabled);
+        if ((int) $state['prunedRuntimeFiles'] > 0) {
+            $this->invalidateTranslationCache();
+        }
         $state['lastAction'] = 'queue_refreshed';
         $state['lastMessage'] = 'Queue refreshed from enabled extensions.';
         $state['updatedAt'] = gmdate('c');
