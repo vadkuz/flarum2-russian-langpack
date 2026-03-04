@@ -21,6 +21,7 @@
     error: '',
     lastRequestAt: 0,
     reloadedAfterSync: false,
+    viewSyncedBase: null,
   };
   var loadingSkeletonTimer = null;
   var loadingSkeletonMinUntil = 0;
@@ -428,6 +429,13 @@
     return Math.floor(n);
   }
 
+  function asSessionDelta(current, base) {
+    var cur = asCount(current);
+    var b = asCount(base);
+    if (cur < b) return 0;
+    return cur - b;
+  }
+
   function asUnixTs(value) {
     var n = Number(value);
     if (!isFinite(n) || n <= 0) return 0;
@@ -573,6 +581,10 @@
     var synced = asCount(data.syncedCount);
     var missing = asCount(data.missingCount);
     var failed = asCount(data.failedCount);
+    if (state.viewSyncedBase === null || synced < asCount(state.viewSyncedBase)) {
+      state.viewSyncedBase = synced;
+    }
+    var syncedInViewSession = asSessionDelta(synced, state.viewSyncedBase);
 
     var autosyncEnabled = data.autosyncEnabled !== false;
     var done = synced + missing;
@@ -754,7 +766,7 @@
           'vadkuz-flarum2-russian-langpack.admin.sync.synced_session',
           'Synced in this session'
         ),
-        synced
+        syncedInViewSession
       )
     );
     metrics.appendChild(
@@ -1037,6 +1049,7 @@
       state.reloadedAfterSync = false;
       state.data = null;
       state.error = '';
+      state.viewSyncedBase = null;
       loadingSkeletonMinUntil = 0;
       clearLoadingDelayTimer();
       registerExtensionSettings();
