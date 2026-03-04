@@ -559,7 +559,7 @@ class TranslationSyncManager
 
         foreach (glob($this->runtimeLocaleDir.'/*.yml') ?: [] as $path) {
             $basename = pathinfo($path, PATHINFO_FILENAME);
-            if (! isset($keep[$basename])) {
+            if (! isset($keep[$basename]) || $this->getTranslationSource($basename) !== 'runtime') {
                 if (@unlink($path)) {
                     $removed++;
                 }
