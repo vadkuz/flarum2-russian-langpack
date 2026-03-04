@@ -448,6 +448,21 @@
     return Math.max(0, ts - now);
   }
 
+  function formatAgoFromTs(ts) {
+    if (!ts || ts <= 0) return '—';
+    var sec = secondsLeft(ts);
+    if (sec === 0) {
+      var delta = Math.max(0, Math.floor(Date.now() / 1000) - ts);
+      if (delta <= 4) return trans('vadkuz-flarum2-russian-langpack.admin.sync.just_now', 'только что');
+      if (delta < 60) return delta + ' c назад';
+      var mins = Math.floor(delta / 60);
+      if (mins < 60) return mins + ' мин назад';
+      var hours = Math.floor(mins / 60);
+      return hours + ' ч назад';
+    }
+    return '—';
+  }
+
   function metricItem(label, value) {
     var item = document.createElement('div');
     item.style.minWidth = '120px';
@@ -576,26 +591,72 @@
     panel.appendChild(title);
 
     var isActive = autosyncEnabled && pending > 0;
+    var tickMeta = data.tickMeta && typeof data.tickMeta === 'object' ? data.tickMeta : null;
+    var lastTickTs = tickMeta ? asUnixTs(tickMeta.lastTickTs) : 0;
+    var nextTickTs = tickMeta ? asUnixTs(tickMeta.nextTickTs) : 0;
+    var nextUnblockTs = tickMeta ? asUnixTs(tickMeta.nextUnblockTs) : 0;
+    var blockedCount = tickMeta ? asCount(tickMeta.blockedCount) : 0;
+    var pauseReason = tickMeta ? String(tickMeta.pauseReason || '') : '';
+
+    var uiState = 'ok';
+    if (!autosyncEnabled) {
+      uiState = 'paused';
+    } else if (isActive) {
+      uiState = 'syncing';
+    } else if (blockedCount > 0) {
+      uiState = 'paused';
+    } else if (failed > 0) {
+      uiState = 'warn';
+    }
+
+    var uiStateLabel = uiState === 'syncing'
+      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_syncing', 'Идёт проверка')
+      : uiState === 'paused'
+      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_paused', 'Пауза')
+      : uiState === 'warn'
+      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_warn', 'Требуется внимание')
+      : trans('vadkuz-flarum2-russian-langpack.admin.sync.state_ok', 'Работает');
+    var uiStateColor = uiState === 'syncing' ? '#1f6feb' : uiState === 'paused' ? '#8a6d3b' : uiState === 'warn' ? '#b45309' : '#166534';
+    var uiStateBg = uiState === 'syncing' ? '#e8f1ff' : uiState === 'paused' ? '#fff7e6' : uiState === 'warn' ? '#fff5eb' : '#eaf8ef';
+    var uiStateBorder = uiState === 'syncing' ? '#cfe2ff' : uiState === 'paused' ? '#f2ddb8' : uiState === 'warn' ? '#ffd7a6' : '#bfe5cc';
 
     var status = document.createElement('div');
-    status.className = 'vadkuz-ru-sync-status';
-    status.style.fontSize = '12px';
-    status.style.fontWeight = '600';
+    status.style.display = 'flex';
+    status.style.alignItems = 'center';
+    status.style.justifyContent = 'space-between';
+    status.style.gap = '8px';
     status.style.marginBottom = '8px';
 
-    var statusDot = document.createElement('span');
-    statusDot.className = 'vadkuz-ru-sync-dot' + (isActive ? ' is-active' : '');
-    status.appendChild(statusDot);
+    var statusBadge = document.createElement('span');
+    statusBadge.textContent = trans('vadkuz-flarum2-russian-langpack.admin.sync.status', 'Статус') + ': ' + uiStateLabel;
+    statusBadge.style.display = 'inline-flex';
+    statusBadge.style.alignItems = 'center';
+    statusBadge.style.padding = '4px 10px';
+    statusBadge.style.borderRadius = '999px';
+    statusBadge.style.fontSize = '12px';
+    statusBadge.style.fontWeight = '700';
+    statusBadge.style.color = uiStateColor;
+    statusBadge.style.background = uiStateBg;
+    statusBadge.style.border = '1px solid ' + uiStateBorder;
+    status.appendChild(statusBadge);
 
-    var statusLabel = document.createElement('span');
-    statusLabel.textContent = !autosyncEnabled
-      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.disabled', 'Autosync disabled')
-      : isActive
-      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.syncing', 'Syncing...')
-      : trans('vadkuz-flarum2-russian-langpack.admin.sync.idle', 'Waiting');
-    statusLabel.style.color = !autosyncEnabled ? '#8a6d3b' : isActive ? '#1f6feb' : '#666';
-    status.appendChild(statusLabel);
-
+    var checkNowBtn = document.createElement('button');
+    checkNowBtn.type = 'button';
+    checkNowBtn.textContent = trans('vadkuz-flarum2-russian-langpack.admin.sync.check_now', 'Проверить сейчас');
+    checkNowBtn.style.fontSize = '12px';
+    checkNowBtn.style.fontWeight = '600';
+    checkNowBtn.style.padding = '6px 10px';
+    checkNowBtn.style.borderRadius = '6px';
+    checkNowBtn.style.border = '1px solid rgba(0,0,0,0.15)';
+    checkNowBtn.style.background = '#fff';
+    checkNowBtn.style.cursor = state.inFlight ? 'not-allowed' : 'pointer';
+    checkNowBtn.disabled = !!state.inFlight;
+    checkNowBtn.addEventListener('click', function () {
+      if (state.inFlight) return;
+      state.lastRequestAt = 0;
+      runStatus().then(runTick);
+    });
+    status.appendChild(checkNowBtn);
     panel.appendChild(status);
 
     var progressWrap = document.createElement('div');
@@ -633,63 +694,50 @@
     progressText.style.color = '#333';
     panel.appendChild(progressText);
 
-    var tickMeta = data.tickMeta && typeof data.tickMeta === 'object' ? data.tickMeta : null;
-    if (tickMeta) {
-      var tickWrap = document.createElement('div');
-      tickWrap.style.fontSize = '12px';
-      tickWrap.style.color = '#555';
-      tickWrap.style.marginBottom = '10px';
-      tickWrap.style.lineHeight = '1.45';
+    var summary = document.createElement('div');
+    summary.style.fontSize = '12px';
+    summary.style.color = '#555';
+    summary.style.marginBottom = '10px';
+    summary.style.lineHeight = '1.45';
 
-      var lastTickTs = asUnixTs(tickMeta.lastTickTs);
-      var nextTickTs = asUnixTs(tickMeta.nextTickTs);
-      var nextUnblockTs = asUnixTs(tickMeta.nextUnblockTs);
-      var blockedCount = asCount(tickMeta.blockedCount);
-      var minTickInterval = asCount(tickMeta.minTickIntervalSeconds);
-      var pauseReason = String(tickMeta.pauseReason || '');
-
-      var lines = [];
-      lines.push(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.tick_last', 'Последний тик') +
-          ': ' +
-          (lastTickTs > 0 ? formatClock(lastTickTs) : '—')
-      );
-      lines.push(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.tick_next_in', 'Следующий тик через') +
-          ': ' +
-          (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c')
-      );
-      lines.push(
-        trans(
-          'vadkuz-flarum2-russian-langpack.admin.sync.tick_min_interval',
-          'Минимальный интервал'
-        ) +
-          ': ' +
-          (minTickInterval > 0 ? minTickInterval : 8) +
-          ' c'
-      );
-
-      if (blockedCount > 0 && nextUnblockTs > 0) {
-        var reasonLabel = pauseReason === 'retry_backoff'
-          ? trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_retry', 'retry backoff')
-          : trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_missing', 'cooldown missing');
-        lines.push(
-          trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_reason', 'Причина паузы') +
-            ': ' +
-            reasonLabel +
-            ', ' +
-            trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_until', 'до') +
-            ' ' +
-            formatClock(nextUnblockTs) +
-            ' (' +
-            blockedCount +
-            ')'
-        );
-      }
-
-      tickWrap.textContent = lines.join(' · ');
-      panel.appendChild(tickWrap);
+    var issuesText = trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_none', 'нет');
+    if (blockedCount > 0) {
+      issuesText = blockedCount + ' ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_waiting', 'расширения ждут повторной проверки');
+    } else if (failed > 0) {
+      issuesText = failed + ' ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_errors', 'ошибок синхронизации');
     }
+
+    var pauseText = '';
+    if (blockedCount > 0 && nextUnblockTs > 0) {
+      var humanReason = pauseReason === 'retry_backoff'
+        ? trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_retry_human', 'временная ошибка источника переводов')
+        : trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_missing_human', 'для части расширений перевод пока не найден');
+      pauseText =
+        ' · ' +
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_reason_human', 'Пауза') +
+        ': ' +
+        humanReason +
+        ' (' +
+        trans('vadkuz-flarum2-russian-langpack.admin.sync.resume_in', 'повтор через') +
+        ' ' +
+        secondsLeft(nextUnblockTs) +
+        ' c)';
+    }
+
+    summary.textContent =
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.checked', 'Проверено') +
+      ': ' +
+      formatAgoFromTs(lastTickTs) +
+      ' · ' +
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.next_check_in', 'Следующая проверка через') +
+      ': ' +
+      (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c') +
+      ' · ' +
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.issues', 'Проблемы') +
+      ': ' +
+      issuesText +
+      pauseText;
+    panel.appendChild(summary);
 
     var metrics = document.createElement('div');
     metrics.style.display = 'flex';
