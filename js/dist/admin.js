@@ -520,15 +520,15 @@
     };
     var setBtnHover = function () {
       if (state.inFlight) return;
-      setBtnStyle('#eef4ff', '#4b77d9', '0 0 0 2px rgba(31, 111, 235, 0.14)', 'none');
+      setBtnStyle('#dbe9ff', '#2f63cc', '0 0 0 3px rgba(31, 111, 235, 0.18)', 'none');
     };
     var setBtnActive = function () {
       if (state.inFlight) return;
-      setBtnStyle('#e1ebff', '#315fbf', 'inset 0 1px 2px rgba(0, 0, 0, 0.12)', 'translateY(1px) scale(0.99)');
+      setBtnStyle('#b8d0ff', '#1f4fae', 'inset 0 2px 4px rgba(0, 0, 0, 0.16)', 'translateY(1px) scale(0.985)');
     };
     var setBtnFocus = function () {
       if (state.inFlight) return;
-      setBtnStyle('#eef4ff', '#1f6feb', '0 0 0 2px rgba(31, 111, 235, 0.30)', 'none');
+      setBtnStyle('#dbe9ff', '#1f6feb', '0 0 0 3px rgba(31, 111, 235, 0.34)', 'none');
     };
 
     setBtnBase();
