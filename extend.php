@@ -14,7 +14,9 @@ use Vadkuz\RussianLangpack\Extend\LifecycleHooks;
 
 return [
     new Extend\LanguagePack('/locale-core'),
-    new Extend\Locales(__DIR__.'/runtime-locale'),
+    // Runtime files are extension-slug YAMLs (e.g. fof-links.yml),
+    // so they must be loaded as a language pack path for the same locale.
+    new Extend\LanguagePack('/runtime-locale'),
     new LifecycleHooks(),
 
     (new Extend\Frontend('admin'))
