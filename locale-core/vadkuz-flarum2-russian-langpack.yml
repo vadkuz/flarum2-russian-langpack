@@ -9,6 +9,6 @@ vadkuz-flarum2-russian-langpack:
       next_check_in: Следующая проверка через
       status: Статус
       check_now: Проверить сейчас
-      state_ok: Работает
+      state_ok: Переводы актуальны
       state_syncing: Идёт проверка
       state_warn: Требуется внимание

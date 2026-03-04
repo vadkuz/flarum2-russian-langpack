@@ -332,6 +332,81 @@
     return '—';
   }
 
+  function statusSection(title, items, chipBg, chipColor) {
+    var wrap = document.createElement('div');
+    wrap.style.flex = '1 1 320px';
+    wrap.style.minWidth = '260px';
+    wrap.style.border = '1px solid #e5e7eb';
+    wrap.style.borderRadius = '8px';
+    wrap.style.padding = '10px';
+    wrap.style.background = '#fafafa';
+
+    var heading = document.createElement('div');
+    heading.textContent = title + ' (' + items.length + ')';
+    heading.style.fontSize = '12px';
+    heading.style.fontWeight = '700';
+    heading.style.color = '#374151';
+    heading.style.marginBottom = '8px';
+    wrap.appendChild(heading);
+
+    if (!items.length) {
+      var empty = document.createElement('div');
+      empty.style.fontSize = '12px';
+      empty.style.color = '#9ca3af';
+      empty.textContent = '—';
+      wrap.appendChild(empty);
+      return wrap;
+    }
+
+    var groups = {};
+    items.forEach(function (id) {
+      var text = String(id || '').trim();
+      if (!text) return;
+      var idx = text.indexOf('/');
+      var vendor = idx > 0 ? text.slice(0, idx) : 'other';
+      if (!groups[vendor]) groups[vendor] = [];
+      groups[vendor].push(text);
+    });
+
+    Object.keys(groups)
+      .sort()
+      .forEach(function (vendor) {
+        var groupWrap = document.createElement('div');
+        groupWrap.style.marginBottom = '8px';
+
+        var groupTitle = document.createElement('div');
+        groupTitle.textContent = vendor + ' (' + groups[vendor].length + ')';
+        groupTitle.style.fontSize = '11px';
+        groupTitle.style.fontWeight = '700';
+        groupTitle.style.color = '#6b7280';
+        groupTitle.style.marginBottom = '4px';
+        groupWrap.appendChild(groupTitle);
+
+        var list = document.createElement('div');
+        list.style.display = 'flex';
+        list.style.flexWrap = 'wrap';
+        list.style.gap = '6px';
+
+        groups[vendor].sort().forEach(function (id) {
+          var chip = document.createElement('span');
+          chip.textContent = id;
+          chip.style.fontSize = '12px';
+          chip.style.lineHeight = '1.2';
+          chip.style.padding = '4px 8px';
+          chip.style.borderRadius = '999px';
+          chip.style.background = chipBg;
+          chip.style.color = chipColor;
+          chip.style.border = '1px solid rgba(0,0,0,0.08)';
+          list.appendChild(chip);
+        });
+
+        groupWrap.appendChild(list);
+        wrap.appendChild(groupWrap);
+      });
+
+    return wrap;
+  }
+
   function setPanelProgress(data) {
     var panel = ensurePanel();
     if (!panel) return;
@@ -368,7 +443,7 @@
       ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_syncing', 'Идёт проверка')
       : uiState === 'warn'
       ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_warn', 'Требуется внимание')
-      : trans('vadkuz-flarum2-russian-langpack.admin.sync.state_ok', 'Работает');
+      : trans('vadkuz-flarum2-russian-langpack.admin.sync.state_ok', 'Переводы актуальны');
     var uiStateColor = uiState === 'syncing' ? '#1f6feb' : uiState === 'warn' ? '#b45309' : '#166534';
     var uiStateBg = uiState === 'syncing' ? '#e8f1ff' : uiState === 'warn' ? '#fff5eb' : '#eaf8ef';
     var uiStateBorder = uiState === 'syncing' ? '#cfe2ff' : uiState === 'warn' ? '#ffd7a6' : '#bfe5cc';
@@ -427,20 +502,6 @@
       (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c');
     panel.appendChild(line1);
 
-    var line2 = document.createElement('div');
-    line2.style.fontSize = '13px';
-    line2.style.color = '#374151';
-    line2.style.marginBottom = '6px';
-    line2.textContent =
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.translated_extensions', 'Перевод есть') +
-      ': ' +
-      translatedCount +
-      ' · ' +
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.missing_extensions', 'Перевод отсутствует') +
-      ': ' +
-      missingCount;
-    panel.appendChild(line2);
-
     var line3 = document.createElement('div');
     line3.style.fontSize = '13px';
     line3.style.color = '#374151';
@@ -449,6 +510,35 @@
       ': ' +
       pending;
     panel.appendChild(line3);
+
+    var translatedExtensions = Array.isArray(data.translatedExtensions) ? data.translatedExtensions : [];
+    var missingExtensions = Array.isArray(data.missingExtensions) ? data.missingExtensions : [];
+    if (translatedExtensions.length || missingExtensions.length) {
+      var sections = document.createElement('div');
+      sections.style.display = 'flex';
+      sections.style.flexWrap = 'wrap';
+      sections.style.gap = '8px';
+      sections.style.marginBottom = '8px';
+
+      sections.appendChild(
+        statusSection(
+          trans('vadkuz-flarum2-russian-langpack.admin.sync.translated_extensions', 'Перевод есть'),
+          translatedExtensions,
+          '#e8f8ef',
+          '#116329'
+        )
+      );
+      sections.appendChild(
+        statusSection(
+          trans('vadkuz-flarum2-russian-langpack.admin.sync.missing_extensions', 'Перевод отсутствует'),
+          missingExtensions,
+          '#fff0f0',
+          '#9b1c1c'
+        )
+      );
+
+      panel.appendChild(sections);
+    }
 
   }
 
