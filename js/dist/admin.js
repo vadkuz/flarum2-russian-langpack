@@ -20,6 +20,7 @@
     data: null,
     error: '',
     lastRequestAt: 0,
+    reloadedAfterSync: false,
   };
 
   function getApiBaseUrl() {
@@ -544,8 +545,10 @@
     state.lastRequestAt = now;
 
     try {
+      var previousData = state.data;
       state.error = '';
       state.data = await apiRequest('/ru-langpack/sync/tick', 'POST');
+      maybeReloadAfterSync(previousData, state.data);
     } catch (error) {
       state.error = (error && error.message) ? error.message : 'Sync failed.';
     } finally {
@@ -570,6 +573,24 @@
     }
   }
 
+  function maybeReloadAfterSync(previousData, currentData) {
+    if (!isOwnExtensionPage()) return;
+    if (state.reloadedAfterSync) return;
+    if (!currentData) return;
+
+    var previousPending = asCount(previousData && previousData.pendingCount);
+    var currentPending = asCount(currentData.pendingCount);
+    var currentSynced = asCount(currentData.syncedCount);
+
+    // Apply freshly downloaded runtime translations immediately after sync queue completion.
+    if (previousPending > 0 && currentPending === 0 && currentSynced > 0) {
+      state.reloadedAfterSync = true;
+      window.setTimeout(function () {
+        window.location.reload();
+      }, 600);
+    }
+  }
+
   function runLoop() {
     if (!isOwnExtensionPage()) {
       removePanel();
@@ -591,6 +612,7 @@
 
     window.addEventListener('hashchange', function () {
       state.lastRequestAt = 0;
+      state.reloadedAfterSync = false;
       registerExtensionSettings();
       runLoop();
     });
