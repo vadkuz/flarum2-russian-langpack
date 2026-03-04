@@ -15,8 +15,6 @@ use Vadkuz\RussianLangpack\Extend\LifecycleHooks;
 return [
     new LifecycleHooks(),
 
-    new Extend\LanguagePack('/locale'),
-
     (new Extend\Frontend('admin'))
         ->js(__DIR__.'/js/dist/admin.js'),
 
