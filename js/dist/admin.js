@@ -119,6 +119,10 @@
       '  0% { background-position: 0 0, 0 0; }',
       '  100% { background-position: 0 0, 36px 0; }',
       '}',
+      '@keyframes vadkuzRuSkeletonShimmer {',
+      '  0% { background-position: 100% 0; }',
+      '  100% { background-position: -100% 0; }',
+      '}',
       '#' + PANEL_ID + ' .vadkuz-ru-sync-status {',
       '  display: flex;',
       '  align-items: center;',
@@ -141,6 +145,12 @@
       '    repeating-linear-gradient(45deg, rgba(255,255,255,0.34) 0px, rgba(255,255,255,0.34) 10px, rgba(255,255,255,0.12) 10px, rgba(255,255,255,0.12) 20px);',
       '  background-size: 100% 100%, 36px 36px;',
       '  animation: vadkuzRuSyncStripes 1s linear infinite;',
+      '}',
+      '#' + PANEL_ID + ' .vadkuz-ru-skeleton {',
+      '  border-radius: 6px;',
+      '  background: linear-gradient(90deg, #eceff3 25%, #f7f9fb 37%, #eceff3 63%);',
+      '  background-size: 400% 100%;',
+      '  animation: vadkuzRuSkeletonShimmer 1.2s ease-in-out infinite;',
       '}',
     ].join('\n');
 
@@ -176,6 +186,96 @@
     body.style.lineHeight = '1.4';
     body.style.color = isError ? '#b72f2f' : '#4d4d4d';
     panel.appendChild(body);
+  }
+
+  function skeletonBlock(height, width, marginBottom, radius) {
+    var el = document.createElement('div');
+    el.className = 'vadkuz-ru-skeleton';
+    el.style.height = (height || 12) + 'px';
+    el.style.width = width || '100%';
+    el.style.borderRadius = (typeof radius === 'number' ? radius : 6) + 'px';
+    if (typeof marginBottom === 'number') {
+      el.style.marginBottom = marginBottom + 'px';
+    }
+    return el;
+  }
+
+  function setPanelSkeleton() {
+    var panel = ensurePanel();
+    if (!panel) return;
+    panel.innerHTML = '';
+
+    panel.appendChild(skeletonBlock(16, '220px', 12, 6));
+
+    var statusRow = document.createElement('div');
+    statusRow.style.display = 'flex';
+    statusRow.style.alignItems = 'center';
+    statusRow.style.gap = '8px';
+    statusRow.style.marginBottom = '10px';
+    statusRow.appendChild(skeletonBlock(8, '8px', 0, 999));
+    statusRow.appendChild(skeletonBlock(12, '130px', 0, 6));
+    panel.appendChild(statusRow);
+
+    var progressWrap = document.createElement('div');
+    progressWrap.style.height = '12px';
+    progressWrap.style.background = '#ececec';
+    progressWrap.style.borderRadius = '999px';
+    progressWrap.style.overflow = 'hidden';
+    progressWrap.style.marginBottom = '10px';
+    progressWrap.appendChild(skeletonBlock(12, '62%', 0, 999));
+    panel.appendChild(progressWrap);
+
+    panel.appendChild(skeletonBlock(13, '280px', 10, 6));
+
+    var metrics = document.createElement('div');
+    metrics.style.display = 'flex';
+    metrics.style.flexWrap = 'wrap';
+    metrics.style.gap = '8px';
+    metrics.style.marginBottom = '12px';
+    for (var i = 0; i < 4; i += 1) {
+      var card = document.createElement('div');
+      card.style.flex = '1 1 120px';
+      card.style.minWidth = '120px';
+      card.style.border = '1px solid rgba(0,0,0,0.08)';
+      card.style.borderRadius = '6px';
+      card.style.padding = '10px';
+      card.style.background = '#f8f8f8';
+      card.appendChild(skeletonBlock(12, '70%', 8, 4));
+      card.appendChild(skeletonBlock(18, '26px', 0, 4));
+      metrics.appendChild(card);
+    }
+    panel.appendChild(metrics);
+
+    panel.appendChild(skeletonBlock(12, '320px', 8, 6));
+
+    var sections = document.createElement('div');
+    sections.style.display = 'flex';
+    sections.style.flexWrap = 'wrap';
+    sections.style.gap = '8px';
+    sections.style.marginBottom = '10px';
+    for (var s = 0; s < 2; s += 1) {
+      var section = document.createElement('div');
+      section.style.flex = '1 1 320px';
+      section.style.minWidth = '260px';
+      section.style.border = '1px solid #e5e7eb';
+      section.style.borderRadius = '8px';
+      section.style.padding = '10px';
+      section.style.background = '#fafafa';
+      section.appendChild(skeletonBlock(12, '160px', 8, 4));
+      var chips = document.createElement('div');
+      chips.style.display = 'flex';
+      chips.style.flexWrap = 'wrap';
+      chips.style.gap = '6px';
+      for (var c = 0; c < 8; c += 1) {
+        chips.appendChild(skeletonBlock(24, (78 + (c % 4) * 20) + 'px', 0, 999));
+      }
+      section.appendChild(chips);
+      sections.appendChild(section);
+    }
+    panel.appendChild(sections);
+
+    panel.appendChild(skeletonBlock(12, '300px', 6, 6));
+    panel.appendChild(skeletonBlock(12, '220px', 0, 6));
   }
 
   function localizeSyncMessage(message) {
@@ -607,10 +707,7 @@
     }
 
     if (!state.data) {
-      setPanelText(
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.loading', 'Loading sync status...'),
-        false
-      );
+      setPanelSkeleton();
       return;
     }
 
@@ -720,6 +817,7 @@
     }
 
     if (!state.data) {
+      setPanelSkeleton();
       runStatus().then(runTick);
       return;
     }
