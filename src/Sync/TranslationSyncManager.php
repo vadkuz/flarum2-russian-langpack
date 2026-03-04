@@ -98,7 +98,7 @@ class TranslationSyncManager
                 ];
 
                 if ($result['status'] === 'synced') {
-                    $this->invalidateTranslationCache();
+                    $state['cacheDirty'] = true;
                     $synced = $this->normalizeStringList($state['synced'] ?? []);
                     $synced[] = $extensionId;
                     $state['synced'] = array_values(array_unique($synced));
@@ -130,6 +130,13 @@ class TranslationSyncManager
             } else {
                 $state['lastAction'] = 'idle';
                 $state['lastMessage'] = 'No pending translations.';
+            }
+
+            $pendingAfterTick = $this->normalizeStringList($state['pending'] ?? []);
+            $cacheDirty = (bool) ($state['cacheDirty'] ?? false);
+            if ($cacheDirty && $pendingAfterTick === []) {
+                $this->invalidateTranslationCache();
+                $state['cacheDirty'] = false;
             }
 
             $now = gmdate('c');
@@ -249,6 +256,7 @@ class TranslationSyncManager
             'lastReportStatus' => null,
             'lastReportHttpCode' => null,
             'lastReportMessage' => null,
+            'cacheDirty' => false,
         ];
     }
 
@@ -276,7 +284,7 @@ class TranslationSyncManager
         $state['failed'] = [];
         $state['prunedRuntimeFiles'] = $this->pruneRuntimeLocales($enabled);
         if ((int) $state['prunedRuntimeFiles'] > 0) {
-            $this->invalidateTranslationCache();
+            $state['cacheDirty'] = true;
         }
         $state['lastAction'] = 'queue_refreshed';
         $state['lastMessage'] = 'Queue refreshed from enabled extensions.';
