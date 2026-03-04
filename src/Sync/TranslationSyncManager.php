@@ -14,6 +14,10 @@ class TranslationSyncManager
     private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
     private const MAX_REMOTE_BYTES = 524288;
     private const MAX_RETRIES = 3;
+    private const MIN_TICK_INTERVAL_SECONDS = 8;
+    private const MISSING_COOLDOWN_SECONDS = 21600;
+    private const FAILED_COOLDOWN_SECONDS = 1800;
+    private const MAX_RETRY_BACKOFF_SECONDS = 900;
     private const REPORTING_INTERVAL_MINUTES = 60;
     private const REPORTING_WEBHOOK_URL = 'https://flarum.vadim.online/api/langpack/ingest';
 
@@ -82,6 +86,15 @@ class TranslationSyncManager
             }
 
             $state = $this->refreshQueue($state);
+            $nowTs = time();
+            $lastTickTs = (int) ($state['lastTickTs'] ?? 0);
+            if ($lastTickTs > 0 && ($nowTs - $lastTickTs) < self::MIN_TICK_INTERVAL_SECONDS) {
+                $state['updatedAt'] = gmdate('c');
+                $this->saveState($state);
+
+                return $this->buildResponse($state, null);
+            }
+            $state['lastTickTs'] = $nowTs;
 
             $processed = null;
             $pending = $this->normalizeStringList($state['pending'] ?? []);
@@ -102,26 +115,54 @@ class TranslationSyncManager
                     $synced = $this->normalizeStringList($state['synced'] ?? []);
                     $synced[] = $extensionId;
                     $state['synced'] = array_values(array_unique($synced));
+                    $state['missing'] = array_values(array_diff(
+                        $this->normalizeStringList($state['missing'] ?? []),
+                        [$extensionId]
+                    ));
+                    $failed = $this->normalizeIntMap($state['failed'] ?? []);
+                    unset($failed[$extensionId]);
+                    $state['failed'] = $failed;
+                    $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+                    unset($missingCooldownUntil[$extensionId]);
+                    $state['missingCooldownUntil'] = $missingCooldownUntil;
+                    $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
+                    unset($retryAfter[$extensionId]);
+                    $state['retryAfter'] = $retryAfter;
                     $state['lastAction'] = 'synced';
                 } elseif ($result['status'] === 'missing') {
                     $missing = $this->normalizeStringList($state['missing'] ?? []);
                     $missing[] = $extensionId;
                     $state['missing'] = array_values(array_unique($missing));
+                    $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+                    $missingCooldownUntil[$extensionId] = time() + self::MISSING_COOLDOWN_SECONDS;
+                    $state['missingCooldownUntil'] = $missingCooldownUntil;
+                    $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
+                    unset($retryAfter[$extensionId]);
+                    $state['retryAfter'] = $retryAfter;
                     $state['lastAction'] = 'missing';
                 } else {
                     $failed = $this->normalizeIntMap($state['failed'] ?? []);
                     $attempts = ($failed[$extensionId] ?? 0) + 1;
                     $failed[$extensionId] = $attempts;
                     $state['failed'] = $failed;
+                    $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
 
                     if ($attempts < self::MAX_RETRIES) {
-                        $pending[] = $extensionId;
-                        $state['pending'] = $pending;
-                        $state['lastAction'] = 'retry';
+                        $retryAfter[$extensionId] = time() + min(
+                            self::MAX_RETRY_BACKOFF_SECONDS,
+                            30 * (2 ** max(0, $attempts - 1))
+                        );
+                        $state['retryAfter'] = $retryAfter;
+                        $state['lastAction'] = 'retry_scheduled';
                     } else {
                         $missing = $this->normalizeStringList($state['missing'] ?? []);
                         $missing[] = $extensionId;
                         $state['missing'] = array_values(array_unique($missing));
+                        $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+                        $missingCooldownUntil[$extensionId] = time() + self::FAILED_COOLDOWN_SECONDS;
+                        $state['missingCooldownUntil'] = $missingCooldownUntil;
+                        unset($retryAfter[$extensionId]);
+                        $state['retryAfter'] = $retryAfter;
                         $state['lastAction'] = 'failed';
                     }
                 }
@@ -257,6 +298,9 @@ class TranslationSyncManager
             'lastReportHttpCode' => null,
             'lastReportMessage' => null,
             'cacheDirty' => false,
+            'missingCooldownUntil' => [],
+            'retryAfter' => [],
+            'lastTickTs' => 0,
         ];
     }
 
@@ -268,6 +312,7 @@ class TranslationSyncManager
     {
         $enabled = $this->getEnabledExtensionIds();
         sort($enabled);
+        $state = $this->cleanupStateMaps($state, $enabled);
 
         $hydratedFromLocalCatalog = $this->hydrateRuntimeFromLocalCatalog($enabled);
         if ($hydratedFromLocalCatalog > 0) {
@@ -275,7 +320,7 @@ class TranslationSyncManager
         }
 
         $extensionsHash = sha1(json_encode($enabled, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
-        $pending = $this->buildPendingQueue($enabled);
+        $pending = $this->buildPendingQueue($enabled, $state);
         $currentPending = $this->normalizeStringList($state['pending'] ?? []);
 
         if (($state['extensionsHash'] ?? '') === $extensionsHash && $currentPending === $pending) {
@@ -285,8 +330,6 @@ class TranslationSyncManager
         $state['extensionsHash'] = $extensionsHash;
         $state['pending'] = $pending;
         $state['synced'] = [];
-        $state['missing'] = [];
-        $state['failed'] = [];
         $state['prunedRuntimeFiles'] = $this->pruneRuntimeLocales($enabled);
         if ((int) $state['prunedRuntimeFiles'] > 0) {
             $state['cacheDirty'] = true;
@@ -342,9 +385,12 @@ class TranslationSyncManager
      * @param list<string> $enabled
      * @return list<string>
      */
-    private function buildPendingQueue(array $enabled): array
+    private function buildPendingQueue(array $enabled, array $state): array
     {
         $pending = [];
+        $now = time();
+        $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+        $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
 
         foreach ($enabled as $extensionId) {
             if (! $this->shouldSyncExtension($extensionId)) {
@@ -355,10 +401,61 @@ class TranslationSyncManager
                 continue;
             }
 
+            if (($missingCooldownUntil[$extensionId] ?? 0) > $now) {
+                continue;
+            }
+
+            if (($retryAfter[$extensionId] ?? 0) > $now) {
+                continue;
+            }
+
             $pending[] = $extensionId;
         }
 
         return $pending;
+    }
+
+    /**
+     * @param array<string, mixed> $state
+     * @param list<string> $enabled
+     * @return array<string, mixed>
+     */
+    private function cleanupStateMaps(array $state, array $enabled): array
+    {
+        $enabledSet = array_fill_keys($enabled, true);
+        $now = time();
+
+        $missingCooldownUntil = $this->normalizeTimestampMap($state['missingCooldownUntil'] ?? []);
+        foreach ($missingCooldownUntil as $extensionId => $untilTs) {
+            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+                unset($missingCooldownUntil[$extensionId]);
+            }
+        }
+        $state['missingCooldownUntil'] = $missingCooldownUntil;
+
+        $retryAfter = $this->normalizeTimestampMap($state['retryAfter'] ?? []);
+        foreach ($retryAfter as $extensionId => $untilTs) {
+            if (! isset($enabledSet[$extensionId]) || $untilTs <= $now || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+                unset($retryAfter[$extensionId]);
+            }
+        }
+        $state['retryAfter'] = $retryAfter;
+
+        $failed = $this->normalizeIntMap($state['failed'] ?? []);
+        foreach (array_keys($failed) as $extensionId) {
+            if (! isset($enabledSet[$extensionId]) || $this->hasRuntimeOrCoreTranslation($extensionId)) {
+                unset($failed[$extensionId]);
+            }
+        }
+        $state['failed'] = $failed;
+
+        $missing = $this->normalizeStringList($state['missing'] ?? []);
+        $missing = array_values(array_filter($missing, function (string $extensionId) use ($enabledSet): bool {
+            return isset($enabledSet[$extensionId]) && ! $this->hasRuntimeOrCoreTranslation($extensionId);
+        }));
+        $state['missing'] = $missing;
+
+        return $state;
     }
 
     private function hasRuntimeOrCoreTranslation(string $extensionId): bool
@@ -1121,6 +1218,33 @@ class TranslationSyncManager
             }
 
             $items[$normalized] = max(0, (int) $count);
+        }
+
+        return $items;
+    }
+
+    /**
+     * @param mixed $value
+     * @return array<string, int>
+     */
+    private function normalizeTimestampMap(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $items = [];
+        foreach ($value as $key => $ts) {
+            if (! is_string($key)) {
+                continue;
+            }
+
+            $normalized = $this->normalizeExtensionId($key);
+            if ($normalized === '') {
+                continue;
+            }
+
+            $items[$normalized] = max(0, (int) $ts);
         }
 
         return $items;
