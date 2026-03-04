@@ -508,29 +508,27 @@
     checkNowBtn.disabled = !!state.inFlight;
     checkNowBtn.style.cursor = state.inFlight ? 'not-allowed' : 'pointer';
 
+    var setBtnStyle = function (bg, border, shadow, transform) {
+      checkNowBtn.style.setProperty('background-color', bg, 'important');
+      checkNowBtn.style.setProperty('border-color', border, 'important');
+      checkNowBtn.style.setProperty('box-shadow', shadow, 'important');
+      checkNowBtn.style.setProperty('transform', transform, 'important');
+    };
+
     var setBtnBase = function () {
-      checkNowBtn.style.backgroundColor = state.inFlight ? '#f3f4f6' : '#ffffff';
-      checkNowBtn.style.borderColor = state.inFlight ? '#d1d5db' : '#c7ced8';
-      checkNowBtn.style.boxShadow = 'none';
-      checkNowBtn.style.transform = 'none';
+      setBtnStyle(state.inFlight ? '#f3f4f6' : '#ffffff', state.inFlight ? '#d1d5db' : '#c7ced8', 'none', 'none');
     };
     var setBtnHover = function () {
       if (state.inFlight) return;
-      checkNowBtn.style.backgroundColor = '#eef4ff';
-      checkNowBtn.style.borderColor = '#4b77d9';
-      checkNowBtn.style.boxShadow = '0 0 0 2px rgba(31, 111, 235, 0.14)';
+      setBtnStyle('#eef4ff', '#4b77d9', '0 0 0 2px rgba(31, 111, 235, 0.14)', 'none');
     };
     var setBtnActive = function () {
       if (state.inFlight) return;
-      checkNowBtn.style.backgroundColor = '#e1ebff';
-      checkNowBtn.style.borderColor = '#315fbf';
-      checkNowBtn.style.boxShadow = 'inset 0 1px 2px rgba(0, 0, 0, 0.12)';
-      checkNowBtn.style.transform = 'translateY(1px) scale(0.99)';
+      setBtnStyle('#e1ebff', '#315fbf', 'inset 0 1px 2px rgba(0, 0, 0, 0.12)', 'translateY(1px) scale(0.99)');
     };
     var setBtnFocus = function () {
       if (state.inFlight) return;
-      checkNowBtn.style.boxShadow = '0 0 0 2px rgba(31, 111, 235, 0.30)';
-      checkNowBtn.style.borderColor = '#1f6feb';
+      setBtnStyle('#eef4ff', '#1f6feb', '0 0 0 2px rgba(31, 111, 235, 0.30)', 'none');
     };
 
     setBtnBase();
