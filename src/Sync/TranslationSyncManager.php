@@ -534,11 +534,6 @@ class TranslationSyncManager
         return in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true);
     }
 
-    private function isAutosyncEnabled(): bool
-    {
-        return true;
-    }
-
     /**
      * @param array<string, mixed> $state
      * @param array<string, string>|null $processed
@@ -604,11 +599,6 @@ class TranslationSyncManager
         $intervalSeconds = $this->getReportingIntervalMinutes() * 60;
 
         return (time() - $lastTs) >= $intervalSeconds;
-    }
-
-    private function isReportingEnabled(): bool
-    {
-        return true;
     }
 
     private function getReportingWebhookUrl(): string
@@ -948,9 +938,6 @@ class TranslationSyncManager
         return [
             'ok' => true,
             'busy' => false,
-            'autosyncEnabled' => $this->isAutosyncEnabled(),
-            'reportingEnabled' => $this->isReportingEnabled(),
-            'reportingWebhookConfigured' => $this->getReportingWebhookUrl() !== '',
             'pendingCount' => count($pending),
             'syncedCount' => count($synced),
             'missingCount' => count($missing),

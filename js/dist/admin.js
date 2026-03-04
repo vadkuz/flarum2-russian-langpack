@@ -19,7 +19,6 @@
     error: '',
     lastRequestAt: 0,
     reloadedAfterSync: false,
-    viewSyncedBase: null,
   };
   var loadingSkeletonTimer = null;
   var loadingSkeletonMinUntil = 0;
@@ -301,116 +300,16 @@
     loadingSkeletonDelayTimer = null;
   }
 
-  function localizeSyncMessage(message) {
-    var text = String(message || '').trim();
-    if (!text) return '';
-
-    var map = {
-      'No pending translations.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.no_pending',
-        'Нет ожидающих переводов.',
-      ],
-      'Translation copied from local catalog.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog',
-        'Перевод взят из локального каталога.',
-      ],
-      'Translation is missing in local catalog.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog_missing',
-        'Перевод отсутствует в локальном каталоге.',
-      ],
-      'Queue refreshed from enabled extensions.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.queue_refreshed',
-        'Очередь обновлена по списку включённых расширений.',
-      ],
-      'Invalid extension id.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_extension',
-        'Некорректный идентификатор расширения.',
-      ],
-      'Downloaded file is empty or invalid.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.invalid_file',
-        'Загруженный файл пустой или некорректный.',
-      ],
-      'Could not write runtime locale file.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.write_failed',
-        'Не удалось записать runtime-файл перевода.',
-      ],
-      'Sync is already running.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.sync_running',
-        'Синхронизация уже выполняется.',
-      ],
-      'Could not open sync lock file.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.lock_open_failed',
-        'Не удалось открыть lock-файл синхронизации.',
-      ],
-      'Reporting is disabled.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_disabled',
-        'Webhook-отчёты отключены.',
-      ],
-      'Webhook URL is not configured.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_missing',
-        'Webhook URL не настроен.',
-      ],
-      'Report interval not reached.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_interval_skip',
-        'Интервал отправки отчёта ещё не наступил.',
-      ],
-      'Report sent.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_sent',
-        'Webhook-отчёт отправлен.',
-      ],
-    };
-
-    if (Object.prototype.hasOwnProperty.call(map, text)) {
-      var item = map[text];
-      return trans(item[0], item[1]);
-    }
-
-    var webhookStatus = text.match(/^Webhook responded with status (\d+)(:?)(.*)$/i);
-    if (webhookStatus) {
-      return trans(
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_status',
-        'Webhook вернул код {status}.',
-        { status: webhookStatus[1] }
-      );
-    }
-
-    var webhookFailed = text.match(/^Webhook request failed:/i);
-    if (webhookFailed) {
-      return trans(
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_webhook_failed',
-        'Ошибка запроса к webhook.'
-      );
-    }
-
-    return text;
-  }
-
   function asCount(value) {
     var n = Number(value);
     if (!isFinite(n) || n < 0) return 0;
     return Math.floor(n);
   }
 
-  function asSessionDelta(current, base) {
-    var cur = asCount(current);
-    var b = asCount(base);
-    if (cur < b) return 0;
-    return cur - b;
-  }
-
   function asUnixTs(value) {
     var n = Number(value);
     if (!isFinite(n) || n <= 0) return 0;
     return Math.floor(n);
-  }
-
-  function formatClock(ts) {
-    var d = new Date(ts * 1000);
-    if (isNaN(d.getTime())) return '—';
-    var hh = String(d.getHours()).padStart(2, '0');
-    var mm = String(d.getMinutes()).padStart(2, '0');
-    var ss = String(d.getSeconds()).padStart(2, '0');
-    return hh + ':' + mm + ':' + ss;
   }
 
   function secondsLeft(ts) {
@@ -433,106 +332,6 @@
     return '—';
   }
 
-  function metricItem(label, value) {
-    var item = document.createElement('div');
-    item.style.minWidth = '120px';
-    item.style.padding = '8px 10px';
-    item.style.background = '#f7f7f7';
-    item.style.borderRadius = '6px';
-    item.style.border = '1px solid rgba(0,0,0,0.06)';
-
-    var labelEl = document.createElement('div');
-    labelEl.textContent = label;
-    labelEl.style.fontSize = '12px';
-    labelEl.style.color = '#666';
-    item.appendChild(labelEl);
-
-    var valueEl = document.createElement('div');
-    valueEl.textContent = String(value);
-    valueEl.style.fontSize = '16px';
-    valueEl.style.fontWeight = '700';
-    valueEl.style.marginTop = '2px';
-    valueEl.style.color = '#202020';
-    item.appendChild(valueEl);
-
-    return item;
-  }
-
-  function statusSection(title, items, chipBg, chipColor) {
-    var wrap = document.createElement('div');
-    wrap.style.flex = '1 1 320px';
-    wrap.style.minWidth = '260px';
-    wrap.style.border = '1px solid #e5e7eb';
-    wrap.style.borderRadius = '8px';
-    wrap.style.padding = '10px';
-    wrap.style.background = '#fafafa';
-
-    var heading = document.createElement('div');
-    heading.textContent = title + ' (' + items.length + ')';
-    heading.style.fontSize = '12px';
-    heading.style.fontWeight = '700';
-    heading.style.color = '#374151';
-    heading.style.marginBottom = '8px';
-    wrap.appendChild(heading);
-
-    if (!items.length) {
-      var empty = document.createElement('div');
-      empty.style.fontSize = '12px';
-      empty.style.color = '#9ca3af';
-      empty.textContent = '—';
-      wrap.appendChild(empty);
-      return wrap;
-    }
-
-    var groups = {};
-    items.forEach(function (id) {
-      var text = String(id || '').trim();
-      if (!text) return;
-      var idx = text.indexOf('/');
-      var vendor = idx > 0 ? text.slice(0, idx) : 'other';
-      if (!groups[vendor]) groups[vendor] = [];
-      groups[vendor].push(text);
-    });
-
-    Object.keys(groups)
-      .sort()
-      .forEach(function (vendor) {
-        var groupWrap = document.createElement('div');
-        groupWrap.style.marginBottom = '8px';
-
-        var groupTitle = document.createElement('div');
-        groupTitle.textContent = vendor + ' (' + groups[vendor].length + ')';
-        groupTitle.style.fontSize = '11px';
-        groupTitle.style.fontWeight = '700';
-        groupTitle.style.color = '#6b7280';
-        groupTitle.style.marginBottom = '4px';
-        groupWrap.appendChild(groupTitle);
-
-        var list = document.createElement('div');
-        list.style.display = 'flex';
-        list.style.flexWrap = 'wrap';
-        list.style.gap = '6px';
-
-        groups[vendor].sort().forEach(function (id) {
-          var chip = document.createElement('span');
-          chip.textContent = id;
-          chip.style.fontSize = '12px';
-          chip.style.lineHeight = '1.2';
-          chip.style.padding = '4px 8px';
-          chip.style.borderRadius = '999px';
-          chip.style.background = chipBg;
-          chip.style.color = chipColor;
-          chip.style.border = '1px solid rgba(0,0,0,0.08)';
-          list.appendChild(chip);
-        });
-
-        groupWrap.appendChild(list);
-        wrap.appendChild(groupWrap);
-      });
-
-    return wrap;
-  }
-
   function setPanelProgress(data) {
     var panel = ensurePanel();
     if (!panel) return;
@@ -540,20 +339,9 @@
     panel.innerHTML = '';
 
     var pending = asCount(data.pendingCount);
-    var synced = asCount(data.syncedCount);
-    var missing = asCount(data.missingCount);
     var failed = asCount(data.failedCount);
-    if (state.viewSyncedBase === null || synced < asCount(state.viewSyncedBase)) {
-      state.viewSyncedBase = synced;
-    }
-    var syncedInViewSession = asSessionDelta(synced, state.viewSyncedBase);
-
-    var autosyncEnabled = data.autosyncEnabled !== false;
-    var done = synced + missing;
-    var total = done + pending;
-    var percent = total > 0 ? Math.round((done * 100) / total) : 100;
-    if (percent < 0) percent = 0;
-    if (percent > 100) percent = 100;
+    var translatedCount = asCount(data.translatedExtensionsCount);
+    var missingCount = asCount(data.missingExtensionsCount);
 
     var title = document.createElement('div');
     title.textContent = trans(
@@ -564,35 +352,26 @@
     title.style.marginBottom = '10px';
     panel.appendChild(title);
 
-    var isActive = autosyncEnabled && pending > 0;
+    var isActive = pending > 0;
     var tickMeta = data.tickMeta && typeof data.tickMeta === 'object' ? data.tickMeta : null;
     var lastTickTs = tickMeta ? asUnixTs(tickMeta.lastTickTs) : 0;
     var nextTickTs = tickMeta ? asUnixTs(tickMeta.nextTickTs) : 0;
-    var nextUnblockTs = tickMeta ? asUnixTs(tickMeta.nextUnblockTs) : 0;
-    var blockedCount = tickMeta ? asCount(tickMeta.blockedCount) : 0;
-    var pauseReason = tickMeta ? String(tickMeta.pauseReason || '') : '';
 
     var uiState = 'ok';
-    if (!autosyncEnabled) {
-      uiState = 'paused';
-    } else if (isActive) {
+    if (isActive) {
       uiState = 'syncing';
-    } else if (blockedCount > 0) {
-      uiState = 'paused';
     } else if (failed > 0) {
       uiState = 'warn';
     }
 
     var uiStateLabel = uiState === 'syncing'
       ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_syncing', 'Идёт проверка')
-      : uiState === 'paused'
-      ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_paused', 'Пауза')
       : uiState === 'warn'
       ? trans('vadkuz-flarum2-russian-langpack.admin.sync.state_warn', 'Требуется внимание')
       : trans('vadkuz-flarum2-russian-langpack.admin.sync.state_ok', 'Работает');
-    var uiStateColor = uiState === 'syncing' ? '#1f6feb' : uiState === 'paused' ? '#8a6d3b' : uiState === 'warn' ? '#b45309' : '#166534';
-    var uiStateBg = uiState === 'syncing' ? '#e8f1ff' : uiState === 'paused' ? '#fff7e6' : uiState === 'warn' ? '#fff5eb' : '#eaf8ef';
-    var uiStateBorder = uiState === 'syncing' ? '#cfe2ff' : uiState === 'paused' ? '#f2ddb8' : uiState === 'warn' ? '#ffd7a6' : '#bfe5cc';
+    var uiStateColor = uiState === 'syncing' ? '#1f6feb' : uiState === 'warn' ? '#b45309' : '#166534';
+    var uiStateBg = uiState === 'syncing' ? '#e8f1ff' : uiState === 'warn' ? '#fff5eb' : '#eaf8ef';
+    var uiStateBorder = uiState === 'syncing' ? '#cfe2ff' : uiState === 'warn' ? '#ffd7a6' : '#bfe5cc';
 
     var status = document.createElement('div');
     status.style.display = 'flex';
@@ -633,208 +412,43 @@
     status.appendChild(checkNowBtn);
     panel.appendChild(status);
 
-    var progressWrap = document.createElement('div');
-    progressWrap.style.height = '12px';
-    progressWrap.style.background = '#ececec';
-    progressWrap.style.borderRadius = '999px';
-    progressWrap.style.overflow = 'hidden';
-    progressWrap.style.marginBottom = '8px';
-
-    var progressBar = document.createElement('div');
-    progressBar.className = 'vadkuz-ru-sync-bar' + (isActive ? ' is-active' : '');
-    progressBar.style.height = '100%';
-    progressBar.style.width = percent + '%';
-    progressBar.style.backgroundColor = !autosyncEnabled ? '#9e9e9e' : pending > 0 ? '#1f8b4c' : '#2d7a2d';
-    progressBar.style.transition = 'width 250ms ease';
-    progressWrap.appendChild(progressBar);
-    panel.appendChild(progressWrap);
-
-    var progressText = document.createElement('div');
-    progressText.textContent =
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.queue_progress', 'Sync queue') +
-      ': ' +
-      done +
-      ' / ' +
-      total +
-      ' (' +
-      percent +
-      '%), ' +
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.remaining', 'Remaining') +
-      ': ' +
-      pending;
-    progressText.style.fontSize = '13px';
-    progressText.style.fontWeight = '600';
-    progressText.style.marginBottom = '10px';
-    progressText.style.color = '#333';
-    panel.appendChild(progressText);
-
-    var summary = document.createElement('div');
-    summary.style.fontSize = '12px';
-    summary.style.color = '#555';
-    summary.style.marginBottom = '10px';
-    summary.style.lineHeight = '1.45';
-
-    var issuesText = trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_none', 'нет');
-    if (blockedCount > 0) {
-      issuesText = blockedCount + ' ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_waiting', 'расширения ждут повторной проверки');
-    } else if (failed > 0) {
-      issuesText = failed + ' ' + trans('vadkuz-flarum2-russian-langpack.admin.sync.issues_errors', 'ошибок синхронизации');
-    }
-
-    var pauseText = '';
-    if (blockedCount > 0 && nextUnblockTs > 0) {
-      var humanReason = pauseReason === 'retry_backoff'
-        ? trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_retry_human', 'временная ошибка источника переводов')
-        : trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_missing_human', 'для части расширений перевод пока не найден');
-      pauseText =
-        ' · ' +
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.pause_reason_human', 'Пауза') +
-        ': ' +
-        humanReason +
-        ' (' +
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.resume_in', 'повтор через') +
-        ' ' +
-        secondsLeft(nextUnblockTs) +
-        ' c)';
-    }
-
-    summary.textContent =
+    var line1 = document.createElement('div');
+    line1.style.fontSize = '13px';
+    line1.style.color = '#374151';
+    line1.style.marginTop = '2px';
+    line1.style.marginBottom = '6px';
+    line1.textContent =
       trans('vadkuz-flarum2-russian-langpack.admin.sync.checked', 'Проверено') +
       ': ' +
       formatAgoFromTs(lastTickTs) +
       ' · ' +
       trans('vadkuz-flarum2-russian-langpack.admin.sync.next_check_in', 'Следующая проверка через') +
       ': ' +
-      (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c') +
-      ' · ' +
-      trans('vadkuz-flarum2-russian-langpack.admin.sync.issues', 'Проблемы') +
+      (nextTickTs > 0 ? secondsLeft(nextTickTs) + ' c' : '0 c');
+    panel.appendChild(line1);
+
+    var line2 = document.createElement('div');
+    line2.style.fontSize = '13px';
+    line2.style.color = '#374151';
+    line2.style.marginBottom = '6px';
+    line2.textContent =
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.translated_extensions', 'Перевод есть') +
       ': ' +
-      issuesText +
-      pauseText;
-    panel.appendChild(summary);
+      translatedCount +
+      ' · ' +
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.missing_extensions', 'Перевод отсутствует') +
+      ': ' +
+      missingCount;
+    panel.appendChild(line2);
 
-    var metrics = document.createElement('div');
-    metrics.style.display = 'flex';
-    metrics.style.flexWrap = 'wrap';
-    metrics.style.gap = '8px';
-    metrics.style.marginBottom = '10px';
-
-    metrics.appendChild(
-      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.queue', 'Queue'), pending)
-    );
-    metrics.appendChild(
-      metricItem(
-        trans(
-          'vadkuz-flarum2-russian-langpack.admin.sync.synced_session',
-          'Synced in this session'
-        ),
-        syncedInViewSession
-      )
-    );
-    metrics.appendChild(
-      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.missing', 'Missing'), missing)
-    );
-    metrics.appendChild(
-      metricItem(trans('vadkuz-flarum2-russian-langpack.admin.sync.failed', 'Failed attempts'), failed)
-    );
-    panel.appendChild(metrics);
-
-    if (data.processed && data.processed.extension) {
-      var processed = document.createElement('div');
-      processed.style.fontSize = '12px';
-      processed.style.marginBottom = '8px';
-      processed.style.color = '#555';
-      processed.textContent =
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.current_extension', 'Last processed') +
-        ': ' +
-        data.processed.extension +
-        (data.processed.result ? ' (' + data.processed.result + ')' : '');
-      panel.appendChild(processed);
-    }
-
-    if (data.pendingPreview && data.pendingPreview.length) {
-      var preview = document.createElement('div');
-      preview.style.fontSize = '12px';
-      preview.style.color = '#555';
-      preview.style.marginBottom = '6px';
-      preview.textContent = trans(
-        'vadkuz-flarum2-russian-langpack.admin.sync.pending_preview',
-        'Next in queue'
-      ) + ':';
-      panel.appendChild(preview);
-
-      var previewList = document.createElement('div');
-      previewList.style.fontSize = '12px';
-      previewList.style.color = '#666';
-      previewList.style.wordBreak = 'break-word';
-      previewList.textContent = data.pendingPreview.slice(0, 8).join(', ');
-      panel.appendChild(previewList);
-    }
-
-    var translatedExtensions = Array.isArray(data.translatedExtensions) ? data.translatedExtensions : [];
-    var missingExtensions = Array.isArray(data.missingExtensions) ? data.missingExtensions : [];
-    if (translatedExtensions.length || missingExtensions.length) {
-      var extTitle = document.createElement('div');
-      extTitle.style.fontSize = '12px';
-      extTitle.style.fontWeight = '700';
-      extTitle.style.color = '#374151';
-      extTitle.style.marginTop = '12px';
-      extTitle.style.marginBottom = '8px';
-      extTitle.textContent = trans(
-        'vadkuz-flarum2-russian-langpack.admin.sync.extensions_status_title',
-        'Общий статус переводов (сейчас)'
-      );
-      panel.appendChild(extTitle);
-
-      var sections = document.createElement('div');
-      sections.style.display = 'flex';
-      sections.style.flexWrap = 'wrap';
-      sections.style.gap = '8px';
-      sections.style.marginBottom = '8px';
-
-      sections.appendChild(
-        statusSection(
-          trans('vadkuz-flarum2-russian-langpack.admin.sync.translated_extensions', 'Перевод есть'),
-          translatedExtensions,
-          '#e8f8ef',
-          '#116329'
-        )
-      );
-      sections.appendChild(
-        statusSection(
-          trans('vadkuz-flarum2-russian-langpack.admin.sync.missing_extensions', 'Перевод отсутствует'),
-          missingExtensions,
-          '#fff0f0',
-          '#9b1c1c'
-        )
-      );
-
-      panel.appendChild(sections);
-    }
-
-    if (data.lastMessage) {
-      var message = document.createElement('div');
-      message.style.fontSize = '12px';
-      message.style.color = '#666';
-      message.style.marginTop = '10px';
-      message.textContent =
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.last_message', 'Message') +
-        ': ' +
-        localizeSyncMessage(data.lastMessage);
-      panel.appendChild(message);
-    }
-
-    if (data.updatedAt) {
-      var updatedAt = document.createElement('div');
-      updatedAt.style.fontSize = '12px';
-      updatedAt.style.color = '#666';
-      updatedAt.style.marginTop = '4px';
-      updatedAt.textContent =
-        trans('vadkuz-flarum2-russian-langpack.admin.sync.updated_at', 'Updated at') +
-        ': ' +
-        data.updatedAt;
-      panel.appendChild(updatedAt);
-    }
+    var line3 = document.createElement('div');
+    line3.style.fontSize = '13px';
+    line3.style.color = '#374151';
+    line3.textContent =
+      trans('vadkuz-flarum2-russian-langpack.admin.sync.queue', 'В очереди') +
+      ': ' +
+      pending;
+    panel.appendChild(line3);
 
   }
 
@@ -1011,7 +625,6 @@
       state.reloadedAfterSync = false;
       state.data = null;
       state.error = '';
-      state.viewSyncedBase = null;
       loadingSkeletonMinUntil = 0;
       clearLoadingDelayTimer();
       registerExtensionSettings();
