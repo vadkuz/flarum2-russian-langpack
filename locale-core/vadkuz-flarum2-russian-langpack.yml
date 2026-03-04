@@ -2,7 +2,7 @@ vadkuz-flarum2-russian-langpack:
   admin:
     settings:
       autosync_label: Включить автосинхронизацию переводов
-      autosync_help: "Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается."
+      autosync_help: "Если выключено, автоматическая подгрузка runtime-переводов из локального каталога приостанавливается."
       reporting_enabled_label: Включить webhook-отчёты
       reporting_enabled_help: "Отправлять информацию о статусе переводов и списке установленных расширений на webhook."
       reporting_webhook_url_label: Webhook URL
@@ -19,7 +19,7 @@ vadkuz-flarum2-russian-langpack:
       queue: В очереди
       synced: Загружено
       synced_session: Синхронизировано в этой сессии
-      missing: Отсутствует на GitHub
+      missing: Отсутствует перевод
       failed: Ошибок
       progress: Прогресс
       queue_progress: Очередь синка
@@ -45,8 +45,7 @@ vadkuz-flarum2-russian-langpack:
       msg:
         no_pending: Нет ожидающих переводов.
         local_catalog: Перевод взят из локального каталога.
-        github_downloaded: Перевод загружен с GitHub.
-        github_not_found: Перевод не найден на GitHub.
+        local_catalog_missing: Перевод отсутствует в локальном каталоге.
         queue_refreshed: Очередь обновлена по списку включённых расширений.
         invalid_extension: Некорректный идентификатор расширения.
         invalid_file: Загруженный файл пустой или некорректный.
@@ -60,4 +59,3 @@ vadkuz-flarum2-russian-langpack:
         reporting_sent: Webhook-отчёт отправлен.
         reporting_webhook_status: "Webhook вернул код {status}."
         reporting_webhook_failed: Ошибка запроса к webhook.
-        github_status: "Запрос к GitHub завершился с кодом {status}."

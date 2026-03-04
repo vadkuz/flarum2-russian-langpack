@@ -335,13 +335,9 @@
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog',
         'Перевод взят из локального каталога.',
       ],
-      'Translation downloaded from GitHub.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_downloaded',
-        'Перевод загружен с GitHub.',
-      ],
-      'Translation not found on GitHub.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_not_found',
-        'Перевод не найден на GitHub.',
+      'Translation is missing in local catalog.': [
+        'vadkuz-flarum2-russian-langpack.admin.sync.msg.local_catalog_missing',
+        'Перевод отсутствует в локальном каталоге.',
       ],
       'Queue refreshed from enabled extensions.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.queue_refreshed',
@@ -392,15 +388,6 @@
     if (Object.prototype.hasOwnProperty.call(map, text)) {
       var item = map[text];
       return trans(item[0], item[1]);
-    }
-
-    var githubStatus = text.match(/^GitHub request failed with status (\d+)\.$/i);
-    if (githubStatus) {
-      return trans(
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.github_status',
-        'Запрос к GitHub завершился с кодом {status}.',
-        { status: githubStatus[1] }
-      );
     }
 
     var webhookStatus = text.match(/^Webhook responded with status (\d+)(:?)(.*)$/i);

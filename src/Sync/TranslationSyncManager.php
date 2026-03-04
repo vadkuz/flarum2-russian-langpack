@@ -11,8 +11,6 @@ class TranslationSyncManager
     private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
     private const REPORTING_SHARED_KEY_KEY = 'vadkuz.russian_langpack.reporting_shared_key';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
-    private const REMOTE_BASE_URL = 'https://raw.githubusercontent.com/vadkuz/flarum2-russian-langpack/main/locale-catalog/';
-    private const MAX_REMOTE_BYTES = 524288;
     private const MAX_RETRIES = 3;
     private const MIN_TICK_INTERVAL_SECONDS = 8;
     private const MISSING_COOLDOWN_SECONDS = 21600;
@@ -955,43 +953,9 @@ class TranslationSyncManager
             }
         }
 
-        $url = self::REMOTE_BASE_URL.$normalized.'.yml';
-        $download = $this->httpGet($url);
-
-        if ($download['status'] === 404) {
-            return [
-                'status' => 'missing',
-                'message' => 'Translation not found on GitHub.',
-            ];
-        }
-
-        if ($download['status'] < 200 || $download['status'] >= 300) {
-            return [
-                'status' => 'failed',
-                'message' => 'GitHub request failed with status '.$download['status'].'.',
-            ];
-        }
-
-        if ($download['body'] === '' || ! $this->isLikelyYaml($download['body'])) {
-            return [
-                'status' => 'failed',
-                'message' => 'Downloaded file is empty or invalid.',
-            ];
-        }
-
-        $targetPath = $this->runtimeLocaleDir.'/'.$normalized.'.yml';
-        $written = @file_put_contents($targetPath, $download['body'], LOCK_EX);
-
-        if (! is_int($written) || $written <= 0) {
-            return [
-                'status' => 'failed',
-                'message' => 'Could not write runtime locale file.',
-            ];
-        }
-
         return [
-            'status' => 'synced',
-            'message' => 'Translation downloaded from GitHub.',
+            'status' => 'missing',
+            'message' => 'Translation is missing in local catalog.',
         ];
     }
 
@@ -1003,58 +967,6 @@ class TranslationSyncManager
 
         return preg_match('/^[a-z0-9][a-z0-9-]*:\s*$/mi', $body) === 1
             || preg_match('/^[a-z0-9][a-z0-9-]*:\s+/mi', $body) === 1;
-    }
-
-    /**
-     * @return array{status: int, body: string}
-     */
-    private function httpGet(string $url): array
-    {
-        if (! function_exists('curl_init')) {
-            return ['status' => 500, 'body' => ''];
-        }
-
-        $body = '';
-        $received = 0;
-        $ch = curl_init($url);
-
-        if ($ch === false) {
-            return ['status' => 500, 'body' => ''];
-        }
-
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 4);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
-        curl_setopt($ch, CURLOPT_USERAGENT, 'Flarum2-Russian-Langpack-Sync');
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
-
-        curl_setopt($ch, CURLOPT_WRITEFUNCTION, static function ($curl, string $chunk) use (&$body, &$received): int {
-            $length = strlen($chunk);
-            $received += $length;
-
-            if ($received > self::MAX_REMOTE_BYTES) {
-                return 0;
-            }
-
-            $body .= $chunk;
-
-            return $length;
-        });
-
-        $ok = curl_exec($ch);
-        $status = (int) curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-        $errno = curl_errno($ch);
-        curl_close($ch);
-
-        if ($ok === false || $errno !== 0) {
-            return ['status' => 500, 'body' => ''];
-        }
-
-        return ['status' => $status, 'body' => $body];
     }
 
     /**
