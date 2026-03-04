@@ -8,7 +8,6 @@ use Flarum\Settings\SettingsRepositoryInterface;
 class TranslationSyncManager
 {
     private const STATE_KEY = 'vadkuz.russian_langpack.sync_state';
-    private const AUTOSYNC_ENABLED_KEY = 'vadkuz.russian_langpack.autosync_enabled';
     private const REPORTING_SHARED_KEY_KEY = 'vadkuz.russian_langpack.reporting_shared_key';
     private const EXTENSIONS_ENABLED_KEY = 'extensions_enabled';
     private const MAX_RETRIES = 3;
@@ -44,17 +43,6 @@ class TranslationSyncManager
         return $this->withLock(function (): array {
             $state = $this->loadState();
 
-            if (! $this->isAutosyncEnabled()) {
-                $state['pending'] = [];
-                $state['lastAction'] = 'disabled';
-                $state['lastMessage'] = 'Autosync is disabled in extension settings.';
-                $state['updatedAt'] = gmdate('c');
-                $state = $this->maybeSendReport($state, null, false, 'status_disabled');
-                $this->saveState($state);
-
-                return $this->buildResponse($state, null);
-            }
-
             $state = $this->refreshQueue($state);
             $state = $this->maybeSendReport($state, null, false, 'status');
             $this->saveState($state);
@@ -70,18 +58,6 @@ class TranslationSyncManager
     {
         return $this->withLock(function (): array {
             $state = $this->loadState();
-
-            if (! $this->isAutosyncEnabled()) {
-                $state['pending'] = [];
-                $state['lastAction'] = 'disabled';
-                $state['lastMessage'] = 'Autosync is disabled in extension settings.';
-                $state['lastRunAt'] = gmdate('c');
-                $state['updatedAt'] = gmdate('c');
-                $state = $this->maybeSendReport($state, null, false, 'tick_disabled');
-                $this->saveState($state);
-
-                return $this->buildResponse($state, null);
-            }
 
             $state = $this->refreshQueue($state);
             $nowTs = time();
@@ -560,37 +536,6 @@ class TranslationSyncManager
 
     private function isAutosyncEnabled(): bool
     {
-        $raw = $this->settings->get(self::AUTOSYNC_ENABLED_KEY);
-
-        if ($raw === null) {
-            return true;
-        }
-
-        if ($raw === true || $raw === 1) {
-            return true;
-        }
-
-        if ($raw === false || $raw === 0) {
-            return false;
-        }
-
-        if (! is_string($raw)) {
-            return true;
-        }
-
-        $normalized = strtolower(trim($raw));
-        if ($normalized === '') {
-            return true;
-        }
-
-        if (in_array($normalized, ['1', 'true', 'enabled', 'yes', 'on'], true)) {
-            return true;
-        }
-
-        if (in_array($normalized, ['0', 'false', 'disabled', 'no', 'off'], true)) {
-            return false;
-        }
-
         return true;
     }
 

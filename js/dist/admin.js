@@ -9,11 +9,9 @@
   var booted = false;
 
   var EXTENSION_ID = 'vadkuz-flarum2-russian-langpack';
-  var AUTOSYNC_SETTING_KEY = 'vadkuz.russian_langpack.autosync_enabled';
   var PANEL_ID = 'vadkuz-ru-sync-panel';
   var PANEL_STYLE_ID = 'vadkuz-ru-sync-panel-style';
   var TICK_INTERVAL_MS = 12000;
-  var settingsRegistered = false;
 
   var state = {
     inFlight: false,
@@ -57,26 +55,7 @@
   }
 
   function registerExtensionSettings() {
-    if (settingsRegistered) return;
-    if (!app || !app.registry || typeof app.registry.for !== 'function') return;
-
-    var registry = app.registry.for(EXTENSION_ID);
-    if (!registry || typeof registry.registerSetting !== 'function') return;
-
-    registry.registerSetting({
-      setting: AUTOSYNC_SETTING_KEY,
-      type: 'boolean',
-      label: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.autosync_label',
-        'Включить автосинхронизацию переводов'
-      ),
-      help: trans(
-        'vadkuz-flarum2-russian-langpack.admin.settings.autosync_help',
-        'Если выключено, автоматическая подгрузка runtime-переводов из локального каталога/GitHub приостанавливается.'
-      ),
-    });
-
-    settingsRegistered = true;
+    // Autosync is always enabled in simplified mode.
   }
 
   function getPanelHost() {
@@ -362,10 +341,6 @@
       'Could not open sync lock file.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.lock_open_failed',
         'Не удалось открыть lock-файл синхронизации.',
-      ],
-      'Autosync is disabled in extension settings.': [
-        'vadkuz-flarum2-russian-langpack.admin.sync.msg.autosync_disabled',
-        'Автосинхронизация отключена в настройках расширения.',
       ],
       'Reporting is disabled.': [
         'vadkuz-flarum2-russian-langpack.admin.sync.msg.reporting_disabled',
